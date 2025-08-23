@@ -40,3 +40,83 @@ Infrastructure projects in Colombia must comply with strict environmental regula
 Our project addresses this challenge by developing an **AI-powered tool that automates environmental impact assessments (EIAs)**. The system ingests project infrastructure data and environmental GIS layers, identifies where they intersect, and instantly maps those intersections to the permits, compensations, and management measures required by Colombian law. The tool then generates a clear, structured report that highlights potential risks, required approvals, and next steps for compliance.
 
 The initial version will focus on key environmental layers—such as rivers, lakes, forests, and threatened species—and the most relevant regulatory triggers. In the long term, the platform will expand to cover additional environmental data and regulations, offering a scalable solution that reduces uncertainty, saves time, and ensures responsible development in Colombia.
+
+# High‑Level Workflow Architecture (MVP‑first)
+
+```
+┌──────────────────────────────────────────────────────────────────────────┐
+│                           Orchestrator (LLM + Graph)                     │
+│        (LangGraph/agent loop; single shared EIA_State blackboard)        │
+└──────────────────────────────────────────────────────────────────────────┘
+                 │ ingest project shapefile/geojson + metadata
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ N1. Project Ingestion + Normalization                                    │
+│  • Read: project layers (lines, towers)                                  │
+│  • Normalize CRS, simplify geometries                                    │
+│  • Update EIA_State.project                                               │
+└──────────────────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ N2. Geospatial Analysis Loop  ⭯                                          │
+│  Orchestrator iterates over target env layers:                           │
+│   rivers, lakes, ecosystems, forests, species, land cover, PAs, etc.     │
+│    ┌─────────────────────────────────────────────────────────────┐       │
+│    │  MCP: Geo MCP (Supabase‑backed)                             │       │
+│    │  Tools:                                                     │       │
+│    │   • get_layer(<layer_key | iso_code | bbox>)                │       │
+│    │   • spatial_join(project_layer, env_layer, predicate, buf)  │       │
+│    │   • summarize_intersections(by=feature_type)                │       │
+│    └─────────────────────────────────────────────────────────────┘       │
+│  • Persist raw intersections + stats to EIA_State.intersections          │
+└──────────────────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ N3. Intersection Synthesis + Extraction                                   │
+│  • Deduplicate/merge overlaps, compute areas/lengths/distances            │
+│  • Produce “Affected Features List” + salient attributes                  │
+│  • Update EIA_State.affected_features                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ N4. LLM Summarizer + Keyword Elicitation                                  │
+│  • Prompted summary of impacts by theme (water, flora/fauna, ecosystems)  │
+│  • Extract legal triggers/keywords (e.g., “cruce de cauce”, “PTAR”, etc.) │
+│  • Update EIA_State.legal_triggers (concepts, keywords, codes)            │
+└──────────────────────────────────────────────────────────────────────────┘
+                 │  triggers/keywords
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ N5. Legal Scope Resolution (KG lookup via MCP)                            │
+│   ┌─────────────────────────────────────────────────────────────────┐     │
+│   │ MCP: Legal‑KB MCP                                              │     │
+│   │  • For MVP: rule_table.csv + resources_index.json              │     │
+│   │  • Long‑term: Graph DB (e.g., Neo4j/pgvector graph)            │     │
+│   │ Tools:                                                         │     │
+│   │  • map_triggers_to_rules(triggers[]) → legal_refs, permits     │     │
+│   │  • list_resources(legal_refs[]) → doc URIs                      │     │
+│   └─────────────────────────────────────────────────────────────────┘     │
+│  • Update EIA_State.legal_scope (rules, permits, authorities)            │
+└──────────────────────────────────────────────────────────────────────────┘
+                 │  refs & URIs
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ N6. Legal Analysis (document pull + LLM)                                  │
+│  • Fetch legal texts (for MVP: full‑doc chunking or whole‑doc if small)   │
+│  • LLM extracts required permits, compensations, mgmt plans, evidence     │
+│  • Update EIA_State.compliance (requirements matrix)                       │
+└──────────────────────────────────────────────────────────────────────────┘
+                 │
+                 ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│ N7. Report Assembly & Export                                              │
+│  • Compose Markdown/HTML report                                           │
+│  • Tables: intersections, legal mapping, next steps, evidence checklist   │
+│  • Attach map snapshots/GeoJSON excerpts                                  │
+│  • Store artifacts (Supabase Storage)                                     │
+└──────────────────────────────────────────────────────────────────────────┘
+
+```
