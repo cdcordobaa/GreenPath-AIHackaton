@@ -1,0 +1,66 @@
+[
+project
+]
+name = "eia-adk"
+version = "0.1.0"
+description = "Environmental Impact Assessment mini-graph using Google's ADK (Gemini)"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+authors = [
+  { name = "EcoLegalHack", email = "team@example.com" }
+]
+dependencies = [
+  "adk",
+  "google-genai",
+  "pydantic>=2.7",
+  "python-dotenv>=1.0.1",
+  "rich>=13.7.1"
+]
+
+[
+tool.uv
+]
+index-strategy = "system-first"
+
+[
+tool.uv.sources
+]
+
+[
+build-system
+]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[
+tool.hatch.build.targets.wheel
+]
+packages = [{ include = "eia_adk", from = "src" }]
+
+[project]
+name = "eia-adk"
+version = "0.1.0"
+description = "Minimal ADK-style multi-agent pipeline for Environmental Impact Assessment (EIA)"
+authors = [
+  { name = "EcoLegalHack" }
+]
+requires-python = ">=3.10"
+dependencies = [
+  "adk",
+  "google-genai",
+  "pydantic>=2",
+  "python-dotenv",
+  "rich",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+exclude = ["tests*"]
