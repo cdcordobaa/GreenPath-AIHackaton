@@ -17,11 +17,11 @@ workflow_agent = SequentialAgent(
     sub_agents=[
         ingest_agent,
         geo_agent,
-        synthesis_agent,
-        summarizer_agent,
-        legal_scope_agent,
-        legal_agent,
-        report_agent,
+        # synthesis_agent,
+        # summarizer_agent,
+        # legal_scope_agent,
+        # legal_agent,
+        # report_agent,
     ],
 )
 
