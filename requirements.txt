@@ -1,0 +1,10 @@
+# Runtime dependencies for EIA-ADK
+# Keep in sync with pyproject.toml if you use both.
+
+google-adk
+google-genai
+pydantic>=2.7
+python-dotenv>=1.0.1
+rich>=13.7.1
+
+
