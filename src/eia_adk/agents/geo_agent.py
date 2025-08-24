@@ -1,5 +1,5 @@
 from google.adk.agents.llm_agent import Agent
-from .tools import run_geospatial_with_config
+from .tools import geo_fetch_all_compendia, derive_impacts_from_compendia
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams, StdioServerParameters
 from pathlib import Path
 import os
@@ -26,16 +26,12 @@ agent = Agent(
     name='geo_agent',
     description='Análisis geoespacial e intersecciones',
     instruction=(
-        'Primero verifica conectividad con el servicio geo-fetch-mcp llamando el tool MCP "ping".\n'
-        'Luego llama al tool "hydrology" con project_id (por defecto "demo-project") para obtener un resumen.\n'
-        'Si falla, informa el error y solicita continuar o reintentar.\n'
-        # 'Si falta state_json o no hay project.config_layers definidos, solicita:\n'
-        # '- state_json (estado actual devuelto por ingest_agent).\n'
-        # '- predicate (por defecto "intersects"): indica el tipo de análisis.\n'
-        # '- buffer_m (opcional).\n'
-        # 'Cuando estén listos, llama run_geospatial_with_config(state_json, predicate?, buffer_m?) y devuelve el estado.'
+        'Recibe el estado del intake con project y config.layers.\n'
+        '1) Llama geo_fetch_all_compendia(state_json) para recopilar TODOS los compendia expuestos por MCP.\n'
+        '2) Llama derive_impacts_from_compendia(state_json) para normalizar categorías y entidades (triggers).\n'
+        'Devuelve el estado final con geo.compendia e impacts.* poblados.\n'
     ),
-    tools=[mcp_geo_fetch_toolset],
+    tools=[mcp_geo_fetch_toolset, geo_fetch_all_compendia, derive_impacts_from_compendia],
 )
 
 

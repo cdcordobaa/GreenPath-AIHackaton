@@ -1,20 +1,18 @@
 from google.adk.agents.llm_agent import Agent
-from .tools import configure_project
+from .tools import intake_project
 
 
 agent = Agent(
     model='gemini-2.5-flash',
     name='ingest_agent',
-    description='Configuración inicial del proyecto (asumiendo archivo existente) y definición de capas objetivo.',
+    description='Intake del proyecto: project_name, project_id? y layers[].',
     instruction=(
-        'Asume que el archivo del proyecto ya existe. Antes de continuar, solicita la información faltante:\n'
-        '- target_layers (obligatorio): lista de capas ambientales a evaluar.\n'
-        '- project_path (opcional): si no se indica, usaré data/sample_project/lines.geojson y lo confirmaré.\n'
-        '- layer_type (opcional): por defecto "lines".\n'
-        'Cuando tengas target_layers (y opcionalmente project_path y layer_type), llama a\n'
-        'configure_project(target_layers, project_path?, layer_type?) y devuelve el estado JSON resultante.'
+        'Solicita y valida: project_name (obligatorio), project_id (opcional) y layers[] (obligatorio).\n'
+        'Cuando estén listos, llama:\n'
+        'intake_project(project_name, layers, project_id?, project_shapefile_path?)\n'
+        'Devuelve el estado JSON tal como lo entrega la herramienta.'
     ),
-    tools=[configure_project],
+    tools=[intake_project],
 )
 
 

@@ -15,6 +15,27 @@ from ..nodes import (
 import asyncio
 import sys
 from pathlib import Path
+from copy import deepcopy
+import threading
+import json
+from ..adapters.llm import LlmRunner, LlmConfig
+import logging
+
+
+logger = logging.getLogger("eia_adk.tools")
+
+
+def _log_compact(label: str, data: Any, max_len: int = 1000) -> None:
+    try:
+        if isinstance(data, (dict, list)):
+            text = json.dumps(data, ensure_ascii=False)
+        else:
+            text = str(data)
+    except Exception:
+        text = str(data)
+    if len(text) > max_len:
+        text = text[:max_len] + "...(truncated)"
+    logger.info("%s: %s", label, text)
 
 
 def _to_state(state_json: Optional[Dict[str, Any]]) -> EIAState:
@@ -137,12 +158,19 @@ async def _async_ping_geo_mcp() -> Dict[str, Any]:
 
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
-            # Ensure tools available and call ping
-            tools = await session.list_tools()
-            tool_names = [t.name for t in tools.tools]
-            if "ping" not in tool_names:
-                return {"ok": False, "error": f"'ping' tool not exposed. Available: {tool_names}"}
-            result = await session.call_tool("ping", {})
+            # Initialize handshake before any requests
+            await session.initialize()
+            # Call ping directly; avoid list_tools to prevent version/protocol mismatches
+            try:
+                result = await session.call_tool("ping", {})
+            except Exception as exc:
+                # As a fallback, try to list tools for diagnostics
+                try:
+                    tools = await session.list_tools()
+                    tool_names = [t.name for t in tools.tools]
+                except Exception as exc2:
+                    tool_names = [f"list_tools_failed: {exc2}"]
+                return {"ok": False, "error": f"ping call failed: {exc}", "tools": tool_names}
             # result.content is a list of content blocks; normalize
             # Try to return first JSON-like block if present
             payload: Dict[str, Any] = {"ok": True}
@@ -176,6 +204,45 @@ def ping_geo_mcp() -> Dict[str, Any]:
         finally:
             loop.close()
 
+
+# --- Async utilities ---
+def _run_coro_blocking(coro):
+    """Run a coroutine from sync context even if an event loop is already running.
+
+    If no loop is running, uses asyncio.run. Otherwise, spins up a dedicated
+    thread with its own loop to execute the coroutine and returns the result.
+    """
+    try:
+        asyncio.get_running_loop()
+        loop_running = True
+    except RuntimeError:
+        loop_running = False
+
+    if not loop_running:
+        return asyncio.run(coro)
+
+    result_holder: Dict[str, Any] = {}
+    error_holder: Dict[str, BaseException] = {}
+
+    def _thread_runner():
+        new_loop = asyncio.new_event_loop()
+        try:
+            asyncio.set_event_loop(new_loop)
+            result_holder["value"] = new_loop.run_until_complete(coro)
+        except BaseException as exc:  # capture and re-raise in caller thread
+            error_holder["exc"] = exc
+        finally:
+            try:
+                new_loop.close()
+            except Exception:
+                pass
+
+    t = threading.Thread(target=_thread_runner, daemon=True)
+    t.start()
+    t.join()
+    if "exc" in error_holder:
+        raise error_holder["exc"]
+    return result_holder.get("value")
 
 async def _async_hydrology_geo_mcp(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     try:
@@ -223,4 +290,340 @@ def hydrology_geo_mcp(project_id: str, limit: int = 10, filters: Optional[Dict[s
         finally:
             loop.close()
 
+
+
+# =====================
+# N1: Intake (thin)
+# =====================
+def intake_project(
+    project_name: str,
+    layers: List[str],
+    project_id: Optional[str] = None,
+    project_shapefile_path: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Initialize state with project metadata and target layers (no I/O).
+
+    Produces the canonical state skeleton requested for the simple workflow.
+    """
+    state: Dict[str, Any] = {
+        "project": {"project_name": project_name},
+        "config": {"layers": list(layers)},
+        "geo": {"summary": {}, "by_layer": {}, "intersections": {}},
+        "impacts": {"categories": [], "entities": []},
+        "legal": {"candidates": [], "requirements": []},
+    }
+    if project_id:
+        state["project"]["project_id"] = project_id
+    if project_shapefile_path:
+        state["project"]["project_shapefile_path"] = project_shapefile_path
+    return state
+
+
+# =====================
+# N2: GeoFetch (MCP loop)
+# =====================
+async def _async_get_layer_records_via_mcp(project_ref: Dict[str, Any], layer: str) -> Dict[str, Any]:
+    """Call the geo-fetch-mcp to get records for a given layer using the generic tool if available.
+
+    Falls back to a per-layer tool name `get_<layer>` if `get_layer_records` is not exposed.
+    """
+    try:
+        from mcp.client.session import ClientSession  # type: ignore
+        from mcp.client.stdio import stdio_client, StdioServerParameters  # type: ignore
+    except Exception as exc:  # pragma: no cover
+        return {"ok": False, "error": f"Missing mcp client dependency: {exc}"}
+
+    repo_root = Path(__file__).resolve().parents[3]
+    server_path = repo_root / "geo-fetch-mcp" / "run_stdio.py"
+    if not server_path.exists():
+        return {"ok": False, "error": f"MCP server entry not found: {server_path}"}
+
+    params = StdioServerParameters(command=sys.executable, args=[str(server_path)])
+
+    project_id = project_ref.get("project_id")
+    project_name = project_ref.get("project_name")
+
+    args: Dict[str, Any] = {"project_id": project_id or "", "layer": layer}
+    # If no id, pass name so server can handle either
+    if not project_id and project_name:
+        args["project_name"] = project_name
+
+    async with stdio_client(params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            # Prefer generic first; on failure, fallback to get_<layer>
+            call_names = ["get_layer_records", f"get_{layer}"]
+            last_err: Optional[Exception] = None
+            result = None
+            for call_name in call_names:
+                try:
+                    result = await session.call_tool(call_name, args)
+                    break
+                except Exception as exc:
+                    last_err = exc
+                    continue
+            if result is None:
+                # As a last resort, try listing tools for visibility
+                try:
+                    tools = await session.list_tools()
+                    tool_names = [t.name for t in tools.tools]
+                except Exception as exc2:
+                    tool_names = [f"list_tools_failed: {exc2}"]
+                return {"ok": False, "error": f"No layer tool succeeded for '{layer}': {last_err}", "available": tool_names}
+            payload: Dict[str, Any] = {"ok": True}
+            try:
+                blocks = getattr(result, "content", [])
+                if blocks:
+                    block0 = blocks[0]
+                    data = getattr(block0, "data", None) or getattr(block0, "text", None)
+                    if isinstance(data, dict):
+                        payload.update(data)
+                    elif isinstance(data, str):
+                        # best-effort passthrough
+                        payload["message"] = data
+            except Exception:
+                pass
+            return payload
+
+
+def geo_fetch_layers(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    """Iterate over config.layers and fetch per-layer records via MCP, merging into state.geo.
+
+    - Writes geo.by_layer[layer] = {rows, count}
+    - Updates geo.summary with count per layer
+    - Optionally mirrors into geo.intersections[layer] with structure {layer, count, records}
+    """
+    current = deepcopy(state_json or {})
+    project_ref = (current.get("project") or {})
+    config = (current.get("config") or {})
+    layers = list(config.get("layers") or [])
+
+    # Ensure geo skeleton exists
+    geo = current.setdefault("geo", {})
+    by_layer: Dict[str, Any] = geo.setdefault("by_layer", {})
+    summary: Dict[str, Any] = geo.setdefault("summary", {})
+    intersections: Dict[str, Any] = geo.setdefault("intersections", {})
+
+    if not layers:
+        return current
+
+    # Per-layer fetch
+    for layer in layers:
+        try:
+            res = _run_coro_blocking(_async_get_layer_records_via_mcp(project_ref, layer))
+            _log_compact(f"geo.layer.{layer}.result", {"ok": res.get("ok", True), "count": res.get("count"), "keys": list(res.keys())})
+
+            if not res.get("ok", True):
+                # Record error summary and continue
+                summary[layer] = 0
+                by_layer[layer] = {"rows": [], "count": 0, "error": res.get("error")}
+                intersections[layer] = {"layer": layer, "count": 0, "records": []}
+                continue
+
+            # Normalize outputs
+            count = int(res.get("count", 0))
+            records = list(res.get("records", []))
+            summary[layer] = count
+            by_layer[layer] = {"rows": records, "count": count}
+            intersections[layer] = {"layer": layer, "count": count, "records": records}
+        except Exception as exc:  # Defensive: do not break the loop
+            summary[layer] = 0
+            by_layer[layer] = {"rows": [], "count": 0, "error": str(exc)}
+            intersections[layer] = {"layer": layer, "count": 0, "records": []}
+            logger.exception("geo.layer.%s.exception", layer)
+
+    return current
+
+
+# =====================
+# Geo: Fetch all *compendium tools
+# =====================
+async def _async_list_tools_and_call_compendia(project_ref: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        from mcp.client.session import ClientSession  # type: ignore
+        from mcp.client.stdio import stdio_client, StdioServerParameters  # type: ignore
+    except Exception as exc:  # pragma: no cover
+        return {"ok": False, "error": f"Missing mcp client dependency: {exc}"}
+
+    repo_root = Path(__file__).resolve().parents[3]
+    server_path = repo_root / "geo-fetch-mcp" / "run_stdio.py"
+    if not server_path.exists():
+        return {"ok": False, "error": f"MCP server entry not found: {server_path}"}
+
+    params = StdioServerParameters(command=sys.executable, args=[str(server_path)])
+    project_id = project_ref.get("project_id")
+    project_name = project_ref.get("project_name")
+    base_args: Dict[str, Any] = {"project_id": project_id or ""}
+    if not project_id and project_name:
+        base_args["project_name"] = project_name
+
+    async with stdio_client(params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            names: List[str]
+            compendia: List[str]
+            try:
+                tools = await session.list_tools()
+                names = [t.name for t in tools.tools]
+                compendia = [n for n in names if n.endswith("_compendium") or (n.startswith("get_") and n.endswith("_compendium"))]
+            except Exception:
+                # Fallback to known compendium tool names if listing is unsupported
+                names = []
+                compendia = [
+                    "get_soils_compendium",
+                    "get_hydrology_compendium",
+                    "get_hydrogeology_compendium",
+                    "get_biotic_compendium",
+                    "get_risk_management_compendium",
+                    "get_compensation_compendium",
+                ]
+            results: Dict[str, Any] = {}
+            for name in compendia:
+                try:
+                    res = await session.call_tool(name, base_args)
+                    payload: Dict[str, Any] = {"ok": True}
+                    blocks = getattr(res, "content", [])
+                    if blocks:
+                        blk0 = blocks[0]
+                        data = getattr(blk0, "data", None) or getattr(blk0, "text", None)
+                        if isinstance(data, dict):
+                            payload.update(data)
+                        elif isinstance(data, str):
+                            try:
+                                parsed = json.loads(data)
+                                if isinstance(parsed, dict):
+                                    payload.update(parsed)
+                                else:
+                                    payload["raw"] = data
+                            except Exception:
+                                payload["raw"] = data
+                    results[name] = payload
+                except Exception as exc:
+                    results[name] = {"ok": False, "error": str(exc)}
+            return {"ok": True, "compendia": results}
+
+
+def geo_fetch_all_compendia(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    current = deepcopy(state_json or {})
+    project_ref = (current.get("project") or {})
+    geo = current.setdefault("geo", {})
+    geo.setdefault("compendia", {})
+
+    try:
+        out = _run_coro_blocking(_async_list_tools_and_call_compendia(project_ref))
+    except Exception as exc:
+        current.setdefault("temp:geo:last_error", f"compendia failed: {exc}")
+        return current
+    if not out.get("ok"):
+        current.setdefault("temp:geo:last_error", str(out))
+        return current
+
+    compendia_results: Dict[str, Any] = out.get("compendia", {})
+    # Store raw compendia results
+    geo["compendia"] = compendia_results
+    _log_compact("geo.compendia.names", list(compendia_results.keys()))
+
+    # Optional: roll up totals per compendium into geo.summary under a nested key
+    summary = geo.setdefault("summary", {})
+    for name, payload in compendia_results.items():
+        comp_summary = payload.get("summary")
+        if isinstance(comp_summary, dict):
+            total = 0
+            try:
+                total = sum(int(v) for v in comp_summary.values())
+            except Exception:
+                pass
+            summary_key = f"{name}:total"
+            summary[summary_key] = total
+        _log_compact(f"geo.compendia.{name}.summary", comp_summary if isinstance(comp_summary, dict) else {"summary": None})
+    return current
+
+
+# =====================
+# LLM: Derive normalized impacts/entities from compendia summaries
+# =====================
+def derive_impacts_from_compendia(state_json: Dict[str, Any], model: Optional[str] = None) -> Dict[str, Any]:
+    current = deepcopy(state_json or {})
+    geo = current.get("geo") or {}
+    comp = geo.get("compendia") or {}
+    # Build a compact prompt using only summaries to keep tokens reasonable
+    summaries: Dict[str, Dict[str, Any]] = {}
+    for name, payload in comp.items():
+        if isinstance(payload, dict) and isinstance(payload.get("summary"), dict):
+            summaries[name] = payload["summary"]
+
+    # If we have no summaries, skip LLM and report meaningful error
+    if not summaries:
+        current.setdefault("temp:impacts:last_error", "no compendia summaries available; run geo_fetch_all_compendia first or check MCP credentials")
+        return current
+    _log_compact("impacts.input.summaries", summaries, max_len=2000)
+
+    cfg = LlmConfig()
+    if model:
+        cfg.primary = model
+    runner = LlmRunner(cfg)
+
+    instruction = (
+        "You are a legal-environmental assistant. Given compendium summaries from geospatial datasets, "
+        "produce a normalized list of impact categories and entities suitable for legal trigger analysis.\n"
+        "Return STRICT JSON with this schema: {\n"
+        "  \"impacts\": {\n"
+        "    \"categories\": [string...],\n"
+        "    \"entities\": [{\n"
+        "      \"category\": string,\n"
+        "      \"entity\": string,\n"
+        "      \"source_compendium\": string,\n"
+        "      \"evidence\": string\n"
+        "    }...]\n"
+        "  }\n"
+        "}\n"
+        "- categories should be Spanish domain buckets like suelo, hidrografía, biota, ecosistemas, riesgo, compensaciones.\n"
+        "- entities should be specific triggers derived from counts, e.g., 'ocupación de cauce', 'ecosistema sensible', 'muestra de agua superficial'.\n"
+        "- Fill evidence concisely from which summary keys suggest the entity."
+    )
+    prompt = (
+        instruction
+        + "\n\nCOMPACTION_SUMMARIES_JSON=\n"
+        + json.dumps(summaries, ensure_ascii=False)
+    )
+
+    def _best_effort_parse_json(text: str) -> Optional[dict]:
+        # Try direct
+        try:
+            return json.loads(text)
+        except Exception:
+            pass
+        # Try to extract first {...} block
+        try:
+            start = text.find('{')
+            end = text.rfind('}')
+            if start != -1 and end != -1 and end > start:
+                return json.loads(text[start:end + 1])
+        except Exception:
+            pass
+        return None
+
+    try:
+        raw = runner.ask(prompt)
+        current.setdefault("temp:impacts:last_raw", raw)
+        _log_compact("impacts.llm.raw", raw, max_len=1000)
+        parsed = _best_effort_parse_json(raw) or {}
+        impacts = parsed.get("impacts", {}) if isinstance(parsed, dict) else {}
+        if impacts:
+            target = current.setdefault("impacts", {"categories": [], "entities": []})
+            cats = impacts.get("categories") or []
+            ents = impacts.get("entities") or []
+            if isinstance(cats, list):
+                target["categories"] = cats
+            if isinstance(ents, list):
+                target["entities"] = ents
+            _log_compact("impacts.output.categories", cats)
+            _log_compact("impacts.output.entities.head", ents[:3] if isinstance(ents, list) else ents)
+        else:
+            current.setdefault("temp:impacts:last_error", "LLM did not return valid JSON 'impacts' object")
+    except Exception as exc:
+        current.setdefault("temp:impacts:last_error", f"LLM error: {exc}")
+        logger.exception("impacts.llm.exception")
+
+    return current
 
