@@ -124,7 +124,7 @@ async def _async_ping_geo_mcp() -> Dict[str, Any]:
     """
     try:
         from mcp.client.session import ClientSession  # type: ignore
-        from mcp.client.stdio import stdio_client  # type: ignore
+        from mcp.client.stdio import stdio_client, StdioServerParameters  # type: ignore
     except Exception as exc:  # pragma: no cover
         return {"ok": False, "error": f"Missing mcp client dependency: {exc}"}
 
@@ -133,10 +133,9 @@ async def _async_ping_geo_mcp() -> Dict[str, Any]:
     if not server_path.exists():
         return {"ok": False, "error": f"MCP server entry not found: {server_path}"}
 
-    cmd = sys.executable
-    args = [str(server_path)]
+    params = StdioServerParameters(command=sys.executable, args=[str(server_path)])
 
-    async with stdio_client(command=cmd, args=args) as (read, write):
+    async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             # Ensure tools available and call ping
             tools = await session.list_tools()
@@ -174,6 +173,53 @@ def ping_geo_mcp() -> Dict[str, Any]:
         loop = asyncio.new_event_loop()
         try:
             return loop.run_until_complete(_async_ping_geo_mcp())
+        finally:
+            loop.close()
+
+
+async def _async_hydrology_geo_mcp(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    try:
+        from mcp.client.session import ClientSession  # type: ignore
+        from mcp.client.stdio import stdio_client, StdioServerParameters  # type: ignore
+    except Exception as exc:  # pragma: no cover
+        return {"ok": False, "error": f"Missing mcp client dependency: {exc}"}
+
+    repo_root = Path(__file__).resolve().parents[3]
+    server_path = repo_root / "geo-fetch-mcp" / "run_stdio.py"
+    if not server_path.exists():
+        return {"ok": False, "error": f"MCP server entry not found: {server_path}"}
+
+    params = StdioServerParameters(command=sys.executable, args=[str(server_path)])
+
+    async with stdio_client(params) as (read, write):
+        async with ClientSession(read, write) as session:
+            tools = await session.list_tools()
+            tool_names = [t.name for t in tools.tools]
+            if "hydrology" not in tool_names:
+                return {"ok": False, "error": f"'hydrology' tool not exposed. Available: {tool_names}"}
+            result = await session.call_tool("hydrology", {"project_id": project_id, "limit": limit, "filters": filters})
+            payload: Dict[str, Any] = {"ok": True}
+            try:
+                blocks = getattr(result, "content", [])
+                if blocks:
+                    block0 = blocks[0]
+                    data = getattr(block0, "data", None) or getattr(block0, "text", None)
+                    if isinstance(data, dict):
+                        payload.update(data)
+                    elif isinstance(data, str):
+                        payload["message"] = data
+            except Exception:
+                pass
+            return payload
+
+
+def hydrology_geo_mcp(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    try:
+        return asyncio.run(_async_hydrology_geo_mcp(project_id=project_id, limit=limit, filters=filters))
+    except RuntimeError:
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(_async_hydrology_geo_mcp(project_id=project_id, limit=limit, filters=filters))
         finally:
             loop.close()
 

@@ -27,14 +27,15 @@ agent = Agent(
     description='Análisis geoespacial e intersecciones',
     instruction=(
         'Primero verifica conectividad con el servicio geo-fetch-mcp llamando el tool MCP "ping".\n'
+        'Luego llama al tool "hydrology" con project_id (por defecto "demo-project") para obtener un resumen.\n'
         'Si falla, informa el error y solicita continuar o reintentar.\n'
-        'Si falta state_json o no hay project.config_layers definidos, solicita:\n'
-        '- state_json (estado actual devuelto por ingest_agent).\n'
-        '- predicate (por defecto "intersects"): indica el tipo de análisis.\n'
-        '- buffer_m (opcional).\n'
-        'Cuando estén listos, llama run_geospatial_with_config(state_json, predicate?, buffer_m?) y devuelve el estado.'
+        # 'Si falta state_json o no hay project.config_layers definidos, solicita:\n'
+        # '- state_json (estado actual devuelto por ingest_agent).\n'
+        # '- predicate (por defecto "intersects"): indica el tipo de análisis.\n'
+        # '- buffer_m (opcional).\n'
+        # 'Cuando estén listos, llama run_geospatial_with_config(state_json, predicate?, buffer_m?) y devuelve el estado.'
     ),
-    tools=[mcp_geo_fetch_toolset, run_geospatial_with_config],
+    tools=[mcp_geo_fetch_toolset],
 )
 
 
