@@ -1,10 +1,8 @@
 from google.adk.agents.llm_agent import Agent
 import os
 from .tools import (
-    geo_fetch_all_compendia,
-    derive_impacts_from_compendia,
-    mock_geo_fetch_all_compendia,
-    mock_derive_impacts_from_compendia,
+    structured_summary_via_mcp,
+    mock_structured_summary,
 )
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams, StdioServerParameters
 from pathlib import Path
@@ -35,14 +33,13 @@ agent = Agent(
     description='Análisis geoespacial e intersecciones',
     instruction=(
         'Recibe el estado del intake con project y config.layers.\n'
-        '1) Llama geo_fetch_all_compendia(state_json) para recopilar TODOS los compendia expuestos por MCP.\n'
-        '2) Llama derive_impacts_from_compendia(state_json) para normalizar categorías y entidades (triggers).\n'
-        'Devuelve el estado final con geo.compendia e impacts.* poblados.\n'
+        '1) Llama get_structured_resource_summary (vía MCP) para obtener filas agregadas con campos {recurso1,recurso,cantidad,tipo,categoria}.\n'
+        '2) Guarda el resultado en state.geo.structured_summary.\n'
+        'Soporta modo MOCK via EIA_USE_MOCKS=1.\n'
     ),
     tools=[
         mcp_geo_fetch_toolset,
-        mock_geo_fetch_all_compendia if USE_MOCKS else geo_fetch_all_compendia,
-        mock_derive_impacts_from_compendia if USE_MOCKS else derive_impacts_from_compendia,
+        mock_structured_summary if USE_MOCKS else structured_summary_via_mcp,
     ],
 )
 

@@ -123,6 +123,27 @@ async def main() -> None:
                     writer.writerows(unique_rows)
                 print({"wrote": str(uniq_csv), "rows": len(unique_rows)})
 
+            # Call the new structured summary tool
+            if "get_structured_resource_summary" in tool_names:
+                res = await call_tool_json("get_structured_resource_summary", {"project_id": project_id})
+                print({
+                    "tool": "get_structured_resource_summary",
+                    "ok": res.get("error") is None,
+                    "count": res.get("count"),
+                })
+                rows = res.get("rows") or []
+                if rows:
+                    # Persist a CSV similar to the SQL output
+                    out_csv = out_dir / f"structured_resource_summary_{ts}.csv"
+                    with out_csv.open("w", newline="") as f:
+                        writer = csv.DictWriter(
+                            f,
+                            fieldnames=["recurso1", "recurso", "cantidad", "tipo", "categoria"],
+                        )
+                        writer.writeheader()
+                        writer.writerows(rows)
+                    print({"wrote": str(out_csv), "rows": len(rows)})
+
 
 if __name__ == "__main__":
     asyncio.run(main())

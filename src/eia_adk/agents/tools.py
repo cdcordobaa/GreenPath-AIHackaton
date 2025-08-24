@@ -840,3 +840,53 @@ def search_scraped_pages_via_mcp(state_json: Dict[str, Any], url_contains: Optio
     geo2neo["scraped_pages"] = search_out
     return current
 
+
+def structured_summary_via_mcp(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    """Convenience tool: fetch compendium summaries via MCP and write into state.
+
+    Delegates to geo_fetch_all_compendia to populate state.geo.compendia and summary rollups.
+    """
+    return geo_fetch_all_compendia(state_json)
+
+
+def structured_summary_via_mcp(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    """Call geo-fetch-mcp.get_structured_resource_summary and write into state.geo.summary_rows.
+
+    Expects state.project.project_id or project_name to be present (optional), but the MCP server
+    reads from Supabase; we pass project_id if available.
+    """
+    current = deepcopy(state_json or {})
+    project_ref = (current.get("project") or {})
+    args: Dict[str, Any] = {}
+    if project_ref.get("project_id"):
+        args["project_id"] = project_ref.get("project_id")
+    elif project_ref.get("project_name"):
+        # Pass empty project_id but include name for future flexibility
+        args["project_id"] = ""
+        args["project_name"] = project_ref.get("project_name")
+    else:
+        args["project_id"] = ""
+
+    try:
+        out = _run_coro_blocking(_async_call_mcp_server("geo-fetch-mcp", "get_structured_resource_summary", args))
+    except Exception as exc:
+        out = {"ok": False, "error": str(exc)}
+
+    geo = current.setdefault("geo", {})
+    if out.get("ok"):
+        geo["structured_summary"] = {"count": out.get("count"), "rows": out.get("rows")}
+    else:
+        geo["structured_summary"] = {"error": out.get("error")}
+    return current
+
+
+def mock_structured_summary(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    current = deepcopy(state_json or {})
+    geo = current.setdefault("geo", {})
+    # Minimal deterministic mock rows
+    rows = [
+        {"recurso1": "Ecosistema X", "recurso": "Bosque Húmedo", "cantidad": 3, "tipo": "aprovechaforestalpg", "categoria": "Bosque Húmedo"},
+        {"recurso1": "Río Demo", "recurso": None, "cantidad": 2, "tipo": "puntomuestreoaguasuper", "categoria": "Río Demo"},
+    ]
+    geo["structured_summary"] = {"count": len(rows), "rows": rows, "mock": True}
+    return current
