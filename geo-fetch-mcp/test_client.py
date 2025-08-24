@@ -1,9 +1,17 @@
 import asyncio
+import json
+import os
 import sys
 from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
 
 
 async def main() -> None:
+    # Load environment variables from .env if present
+    try:
+        load_dotenv(find_dotenv())
+    except Exception:
+        pass
     try:
         from mcp.client.session import ClientSession  # type: ignore
         from mcp.client.stdio import stdio_client, StdioServerParameters  # type: ignore
@@ -19,20 +27,49 @@ async def main() -> None:
             tools = await session.list_tools()
             tool_names = [t.name for t in tools.tools]
             print({"tools": tool_names})
-            if "ping" in tool_names:
-                res = await session.call_tool("ping", {})
-                out = {"ok": True}
+
+            async def call_tool_json(name: str, args: dict) -> dict:
                 try:
+                    res = await session.call_tool(name, args)
                     blocks = getattr(res, "content", [])
-                    if blocks:
-                        data = getattr(blocks[0], "data", None) or getattr(blocks[0], "text", None)
+                    for blk in blocks:
+                        data = getattr(blk, "data", None) or getattr(blk, "text", None)
                         if isinstance(data, dict):
-                            out.update(data)
-                        elif isinstance(data, str):
-                            out["message"] = data
-                except Exception:
-                    pass
-                print(out)
+                            return data
+                        if isinstance(data, str):
+                            try:
+                                parsed = json.loads(data)
+                                if isinstance(parsed, dict):
+                                    return parsed
+                            except Exception:
+                                pass
+                    return {"ok": True, "raw": str(blocks[0].text) if blocks else None}
+                except Exception as exc:
+                    return {"ok": False, "error": str(exc)}
+
+            if "ping" in tool_names:
+                print(await call_tool_json("ping", {}))
+
+            have_supabase = bool(os.environ.get("SUPABASE_URL") and (os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_ANON_KEY")))
+            project_id = os.environ.get("PROJECT_ID", "demo-project")
+
+            if not have_supabase:
+                print({"note": "Skipping Supabase-backed tools (missing SUPABASE_URL/KEY)."})
+                return
+
+            compendiums = [
+                "get_soils_compendium",
+                "get_hydrology_compendium",
+                "get_hydrogeology_compendium",
+                "get_biotic_compendium",
+                "get_risk_management_compendium",
+                "get_compensation_compendium",
+            ]
+
+            for name in compendiums:
+                if name in tool_names:
+                    res = await call_tool_json(name, {"project_id": project_id})
+                    print({"tool": name, "summary": res.get("summary"), "ok": res.get("error") is None})
 
 
 if __name__ == "__main__":

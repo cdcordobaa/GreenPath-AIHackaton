@@ -22,6 +22,15 @@ else:
 mcp = FastMCP("geo-fetch-mcp")
 
 
+def _supabase_fetch_all_rows(table_name: str) -> Dict[str, Any]:
+    if supabase is None:
+        raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY in environment")
+    resp = supabase.table(table_name).select("*").execute()
+    rows = getattr(resp, "data", []) or []
+    err = getattr(resp, "error", None)
+    return {"rows": rows, "count": len(rows), "error": err}
+
+
 @mcp.tool()
 def get_layer_records(input: GenericLayerQueryInput) -> LayerQueryOutput:
     recs = fetch_layer_records(project_id=input.project_id, layer=input.layer)
@@ -76,100 +85,305 @@ def ping() -> dict:
 
 
 @mcp.tool()
-def capacidad_uso_tierra_query(limit: int = 10, eq: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    if supabase is None:
-        raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY in environment")
-    query = supabase.table("CapacidadUsoTierra").select("*")
-    # Allow caller to pass filters with either uppercase or lowercase column names
-    valid_cols = {
-        "id",
-        "EXPEDIENTE",
-        "CLASE",
-        "SUBCLASE",
-        "G_MANEJO",
-        "USO_PRIN_P",
-        "AREA_HA",
-        "DES_LIMI_U",
-        "OBSERV",
-        "TIPO",
-        "CATEGORIA",
-        "GEOMETRY",
-    }
-    if eq:
-        for raw_col, val in eq.items():
-            col = raw_col
-            # Normalize simple lower-case keys to expected casing if needed
-            if raw_col.lower() == "categoria":
-                col = "CATEGORIA"
-            elif raw_col.lower() == "clase":
-                col = "CLASE"
-            elif raw_col.lower() == "uso_prin_p":
-                col = "USO_PRIN_P"
-            elif raw_col.lower() == "area_ha":
-                col = "AREA_HA"
-            elif raw_col.lower() == "tipo":
-                col = "TIPO"
-            elif raw_col.lower() == "subclase":
-                col = "SUBCLASE"
-            elif raw_col.lower() == "g_manejo":
-                col = "G_MANEJO"
-            elif raw_col.lower() == "des_limi_u":
-                col = "DES_LIMI_U"
-            elif raw_col.lower() == "expediente":
-                col = "EXPEDIENTE"
-            elif raw_col.lower() == "geometry":
-                col = "GEOMETRY"
-
-            if col not in valid_cols:
-                # Skip unknown columns rather than failing query
-                continue
-            query = query.eq(col, val)
-    query = query.limit(limit)
-    resp = query.execute()
-    rows = getattr(resp, "data", []) or []
-    err = getattr(resp, "error", None)
-    print(f"rows: {rows}")
-    return {"rows": rows, "count": len(rows), "error": err}
+def capacidad_uso_tierra_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("CapacidadUsoTierra")
 
 
 @mcp.tool()
-def get_hydrology_compendium(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Hydrology compendium: combines hydrology-related datasets.
-
-    - capacidad_uso_tierra_query (optional filters)
-    - intersections for hydrography and soils layers (limited)
-    """
-    # Soils capacity/usage table
-    capacidad = capacidad_uso_tierra_query(limit=limit, eq=filters)
-
-    # Intersections from curated tables
-    hydro_recs = fetch_layer_records(project_id=project_id, layer="hydrography")
-    soils_recs = fetch_layer_records(project_id=project_id, layer="soils")
-
-    hydro_out = {
-        "layer": "hydrography",
-        "count": len(hydro_recs),
-        "records": hydro_recs[: max(0, int(limit))],
+def get_soils_compendium(project_id: str) -> Dict[str, Any]:
+    capacidad = capacidad_uso_tierra_query(project_id)
+    return {
+        "summary": {"CapacidadUsoTierra": capacidad["count"]},
+        "datasets": {"CapacidadUsoTierra": capacidad},
     }
-    soils_out = {
-        "layer": "soils",
-        "count": len(soils_recs),
-        "records": soils_recs[: max(0, int(limit))],
-    }
+
+
+@mcp.tool()
+def get_hydrology_compendium(project_id: str) -> Dict[str, Any]:
+    cuencas = _supabase_fetch_all_rows("CuencaHidrografica")
+    ocupacion = _supabase_fetch_all_rows("ocupacioncauce")
+    muestras_super = _supabase_fetch_all_rows("puntomuestreoaguasuper")
+    usos_usuarios = _supabase_fetch_all_rows("usosyusuariosrecursohidrico")
 
     return {
         "summary": {
-            "capacidad_uso_tierra_count": capacidad.get("count", 0),
-            "hydrography_count": hydro_out["count"],
-            "soils_count": soils_out["count"],
+            "CuencaHidrografica": cuencas["count"],
+            "ocupacioncauce": ocupacion["count"],
+            "puntomuestreoaguasuper": muestras_super["count"],
+            "usosyusuariosrecursohidrico": usos_usuarios["count"],
         },
-        "capacidad_uso_tierra": capacidad,
-        "intersections": {
-            "hydrography": hydro_out,
-            "soils": soils_out,
+        "datasets": {
+            "CuencaHidrografica": cuencas,
+            "ocupacioncauce": ocupacion,
+            "puntomuestreoaguasuper": muestras_super,
+            "usosyusuariosrecursohidrico": usos_usuarios,
         },
     }
 
+
+@mcp.tool()
+def cuenca_hidrografica_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("CuencaHidrografica")
+
+
+@mcp.tool()
+def ocupacion_cauce_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("ocupacioncauce")
+
+
+@mcp.tool()
+def punto_muestreo_agua_super_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("puntomuestreoaguasuper")
+
+
+@mcp.tool()
+def usosy_usuarios_recurso_hidrico_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("usosyusuariosrecursohidrico")
+
+
+@mcp.tool()
+def get_hydrogeology_compendium(project_id: str) -> Dict[str, Any]:
+    punto_hi = _supabase_fetch_all_rows("PuntoHidrogeologico")
+    puntohi_lower = _supabase_fetch_all_rows("puntohidrogeologico")
+    muestras_sub = _supabase_fetch_all_rows("puntomuestreoaguasubter")
+    return {
+        "summary": {
+            "PuntoHidrogeologico": punto_hi["count"],
+            "puntohidrogeologico": puntohi_lower["count"],
+            "puntomuestreoaguasubter": muestras_sub["count"],
+        },
+        "datasets": {
+            "PuntoHidrogeologico": punto_hi,
+            "puntohidrogeologico": puntohi_lower,
+            "puntomuestreoaguasubter": muestras_sub,
+        },
+    }
+
+
+@mcp.tool()
+def punto_hidrogeologico_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("PuntoHidrogeologico")
+
+
+@mcp.tool()
+def puntohidrogeologico_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("puntohidrogeologico")
+
+
+@mcp.tool()
+def punto_muestreo_agua_subter_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("puntomuestreoaguasubter")
+
+
+@mcp.tool()
+def get_biotic_compendium(project_id: str) -> Dict[str, Any]:
+    a_pg = _supabase_fetch_all_rows("aprovechaforestalpg")
+    a_pt = _supabase_fetch_all_rows("aprovechaforestalpt")
+    cob = _supabase_fetch_all_rows("coberturatierra")
+    eco = _supabase_fetch_all_rows("ecosistema")
+    pm_fauna = _supabase_fetch_all_rows("puntomuestreofauna")
+    pm_flora = _supabase_fetch_all_rows("puntomuestreoflora")
+    tran_fauna = _supabase_fetch_all_rows("transectomuestreofauna")
+    return {
+        "summary": {
+            "aprovechaforestalpg": a_pg["count"],
+            "aprovechaforestalpt": a_pt["count"],
+            "coberturatierra": cob["count"],
+            "ecosistema": eco["count"],
+            "puntomuestreofauna": pm_fauna["count"],
+            "puntomuestreoflora": pm_flora["count"],
+            "transectomuestreofauna": tran_fauna["count"],
+        },
+        "datasets": {
+            "aprovechaforestalpg": a_pg,
+            "aprovechaforestalpt": a_pt,
+            "coberturatierra": cob,
+            "ecosistema": eco,
+            "puntomuestreofauna": pm_fauna,
+            "puntomuestreoflora": pm_flora,
+            "transectomuestreofauna": tran_fauna,
+        },
+    }
+
+
+@mcp.tool()
+def aprovecha_forestal_pg_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("aprovechaforestalpg")
+
+
+@mcp.tool()
+def aprovecha_forestal_pt_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("aprovechaforestalpt")
+
+
+@mcp.tool()
+def cobertura_tierra_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("coberturatierra")
+
+
+@mcp.tool()
+def ecosistema_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("ecosistema")
+
+
+@mcp.tool()
+def punto_muestreo_fauna_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("puntomuestreofauna")
+
+
+@mcp.tool()
+def punto_muestreo_flora_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("puntomuestreoflora")
+
+
+@mcp.tool()
+def transecto_muestreo_fauna_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("transectomuestreofauna")
+
+
+@mcp.tool()
+def get_risk_management_compendium(project_id: str) -> Dict[str, Any]:
+    am_otras = _supabase_fetch_all_rows("amenazaotras")
+    el_ln = _supabase_fetch_all_rows("elementosexpuestosln")
+    el_pg = _supabase_fetch_all_rows("elementosexpuestospg")
+    el_pt = _supabase_fetch_all_rows("elementosexpuestospt")
+    esc_inc = _supabase_fetch_all_rows("escenriesgoincendio")
+    esc_mov = _supabase_fetch_all_rows("escenriesgomovmasa")
+    eventos = _supabase_fetch_all_rows("eventos_pt")
+    export_out = _supabase_fetch_all_rows("export_output")
+    sus_av = _supabase_fetch_all_rows("suscept_aventorren")
+    sus_inc = _supabase_fetch_all_rows("suscept_incendios")
+    sus_inu = _supabase_fetch_all_rows("suscept_inundaciones")
+    sus_mov = _supabase_fetch_all_rows("suscept_movmasa")
+    vul_ln = _supabase_fetch_all_rows("vulnerabilidad_ln")
+    vul_pg = _supabase_fetch_all_rows("vulnerabilidad_pg")
+    vul_pt = _supabase_fetch_all_rows("vulnerabilidad_pt")
+
+    return {
+        "summary": {
+            "amenazaotras": am_otras["count"],
+            "elementosexpuestosln": el_ln["count"],
+            "elementosexpuestospg": el_pg["count"],
+            "elementosexpuestospt": el_pt["count"],
+            "escenriesgoincendio": esc_inc["count"],
+            "escenriesgomovmasa": esc_mov["count"],
+            "eventos_pt": eventos["count"],
+            "export_output": export_out["count"],
+            "suscept_aventorren": sus_av["count"],
+            "suscept_incendios": sus_inc["count"],
+            "suscept_inundaciones": sus_inu["count"],
+            "suscept_movmasa": sus_mov["count"],
+            "vulnerabilidad_ln": vul_ln["count"],
+            "vulnerabilidad_pg": vul_pg["count"],
+            "vulnerabilidad_pt": vul_pt["count"],
+        },
+        "datasets": {
+            "amenazaotras": am_otras,
+            "elementosexpuestosln": el_ln,
+            "elementosexpuestospg": el_pg,
+            "elementosexpuestospt": el_pt,
+            "escenriesgoincendio": esc_inc,
+            "escenriesgomovmasa": esc_mov,
+            "eventos_pt": eventos,
+            "export_output": export_out,
+            "suscept_aventorren": sus_av,
+            "suscept_incendios": sus_inc,
+            "suscept_inundaciones": sus_inu,
+            "suscept_movmasa": sus_mov,
+            "vulnerabilidad_ln": vul_ln,
+            "vulnerabilidad_pg": vul_pg,
+            "vulnerabilidad_pt": vul_pt,
+        },
+    }
+
+
+@mcp.tool()
+def amenaza_otras_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("amenazaotras")
+
+
+@mcp.tool()
+def elementos_expuestos_ln_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("elementosexpuestosln")
+
+
+@mcp.tool()
+def elementos_expuestos_pg_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("elementosexpuestospg")
+
+
+@mcp.tool()
+def elementos_expuestos_pt_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("elementosexpuestospt")
+
+
+@mcp.tool()
+def escen_riesgo_incendio_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("escenriesgoincendio")
+
+
+@mcp.tool()
+def escen_riesgo_mov_masa_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("escenriesgomovmasa")
+
+
+@mcp.tool()
+def eventos_pt_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("eventos_pt")
+
+
+@mcp.tool()
+def export_output_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("export_output")
+
+
+@mcp.tool()
+def suscept_aventorren_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("suscept_aventorren")
+
+
+@mcp.tool()
+def suscept_incendios_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("suscept_incendios")
+
+
+@mcp.tool()
+def suscept_inundaciones_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("suscept_inundaciones")
+
+
+@mcp.tool()
+def suscept_movmasa_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("suscept_movmasa")
+
+
+@mcp.tool()
+def vulnerabilidad_ln_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("vulnerabilidad_ln")
+
+
+@mcp.tool()
+def vulnerabilidad_pg_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("vulnerabilidad_pg")
+
+
+@mcp.tool()
+def vulnerabilidad_pt_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("vulnerabilidad_pt")
+
+
+@mcp.tool()
+def get_compensation_compendium(project_id: str) -> Dict[str, Any]:
+    comp_bio = _supabase_fetch_all_rows("compensacionbiodiversidad")
+    return {
+        "summary": {"compensacionbiodiversidad": comp_bio["count"]},
+        "datasets": {"compensacionbiodiversidad": comp_bio},
+    }
+
+
+@mcp.tool()
+def compensacion_biodiversidad_query(project_id: str) -> Dict[str, Any]:
+    return _supabase_fetch_all_rows("compensacionbiodiversidad")
 
 if __name__ == "__main__":
     mcp.run_stdio()
