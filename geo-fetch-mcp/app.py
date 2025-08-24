@@ -128,11 +128,12 @@ def capacidad_uso_tierra_query(limit: int = 10, eq: Optional[Dict[str, Any]] = N
     resp = query.execute()
     rows = getattr(resp, "data", []) or []
     err = getattr(resp, "error", None)
+    print(f"rows: {rows}")
     return {"rows": rows, "count": len(rows), "error": err}
 
 
 @mcp.tool()
-def hydrology(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def get_hydrology_compendium(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Hydrology compendium: combines hydrology-related datasets.
 
     - capacidad_uso_tierra_query (optional filters)
