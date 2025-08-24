@@ -1,0 +1,37 @@
+from fastapi import FastAPI, Body
+from typing import Dict, Any, Optional
+
+from models import LayerQueryInput, GenericLayerQueryInput
+import app as mcp_app
+
+
+api = FastAPI(title="eia-geo-mcp", version="0.1.0")
+
+
+@api.post("/tools/ping")
+def http_ping() -> Dict[str, Any]:
+    return mcp_app.ping()
+
+
+@api.post("/tools/get_layer_records")
+def http_get_layer_records(input: GenericLayerQueryInput):
+    out = mcp_app.get_layer_records(input)
+    return out.model_dump()
+
+
+@api.post("/tools/get_ecosystems")
+def http_get_ecosystems(input: LayerQueryInput):
+    out = mcp_app.get_ecosystems(input)
+    return out.model_dump()
+
+
+@api.post("/tools/capacidad_uso_tierra_query")
+def http_capacidad_uso_tierra_query(limit: int = 10, filters: Optional[Dict[str, Any]] = Body(default=None)):
+    return mcp_app.capacidad_uso_tierra_query(limit=limit, eq=filters)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(api, host="127.0.0.1", port=8765)
+
+

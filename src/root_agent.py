@@ -15,7 +15,7 @@ workflow_agent = SequentialAgent(
     name='workflow',
     description='EIA pipeline: ingest → geo → synthesis → summarizer → legal_scope → legal → report',
     sub_agents=[
-        ingest_agent,
+        # ingest_agent,
         geo_agent,
         # synthesis_agent,
         # summarizer_agent,

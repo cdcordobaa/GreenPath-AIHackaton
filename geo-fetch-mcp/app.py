@@ -80,8 +80,49 @@ def capacidad_uso_tierra_query(limit: int = 10, eq: Optional[Dict[str, Any]] = N
     if supabase is None:
         raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY in environment")
     query = supabase.table("CapacidadUsoTierra").select("*")
+    # Allow caller to pass filters with either uppercase or lowercase column names
+    valid_cols = {
+        "id",
+        "EXPEDIENTE",
+        "CLASE",
+        "SUBCLASE",
+        "G_MANEJO",
+        "USO_PRIN_P",
+        "AREA_HA",
+        "DES_LIMI_U",
+        "OBSERV",
+        "TIPO",
+        "CATEGORIA",
+        "GEOMETRY",
+    }
     if eq:
-        for col, val in eq.items():
+        for raw_col, val in eq.items():
+            col = raw_col
+            # Normalize simple lower-case keys to expected casing if needed
+            if raw_col.lower() == "categoria":
+                col = "CATEGORIA"
+            elif raw_col.lower() == "clase":
+                col = "CLASE"
+            elif raw_col.lower() == "uso_prin_p":
+                col = "USO_PRIN_P"
+            elif raw_col.lower() == "area_ha":
+                col = "AREA_HA"
+            elif raw_col.lower() == "tipo":
+                col = "TIPO"
+            elif raw_col.lower() == "subclase":
+                col = "SUBCLASE"
+            elif raw_col.lower() == "g_manejo":
+                col = "G_MANEJO"
+            elif raw_col.lower() == "des_limi_u":
+                col = "DES_LIMI_U"
+            elif raw_col.lower() == "expediente":
+                col = "EXPEDIENTE"
+            elif raw_col.lower() == "geometry":
+                col = "GEOMETRY"
+
+            if col not in valid_cols:
+                # Skip unknown columns rather than failing query
+                continue
             query = query.eq(col, val)
     query = query.limit(limit)
     resp = query.execute()
