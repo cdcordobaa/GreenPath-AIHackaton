@@ -19,8 +19,8 @@ workflow_agent = SequentialAgent(
     sub_agents=[
         ingest_agent,
         geo_agent,
-        # geo2neo_agent,
-        # geo_kb_agent,
+        geo2neo_agent,
+        geo_kb_agent,
         # synthesis_agent,
         # summarizer_agent,
         # legal_scope_agent,
