@@ -772,3 +772,71 @@ def mock_geo2neo_map(state_json: Dict[str, Any]) -> Dict[str, Any]:
         geo2neo["error"] = f"mock parse failed: {exc}"
     return current
 
+
+async def _async_call_mcp_server(server_subdir: str, tool: str, args: Dict[str, Any]) -> Dict[str, Any]:
+    try:
+        from mcp.client.session import ClientSession  # type: ignore
+        from mcp.client.stdio import stdio_client, StdioServerParameters  # type: ignore
+    except Exception as exc:  # pragma: no cover
+        return {"ok": False, "error": f"Missing mcp client dependency: {exc}"}
+
+    repo_root = Path(__file__).resolve().parents[3]
+    server_path = repo_root / server_subdir / "run_stdio.py"
+    if not server_path.exists():
+        return {"ok": False, "error": f"MCP server entry not found: {server_path}"}
+
+    # Prefer that server's venv python if present; else fall back to current interpreter
+    venv_python = (repo_root / server_subdir / ".venv" / "bin" / "python")
+    python_cmd = str(venv_python) if venv_python.exists() else sys.executable
+
+    params = StdioServerParameters(command=python_cmd, args=[str(server_path)])
+    async with stdio_client(params) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            try:
+                res = await session.call_tool(tool, args)
+                blocks = getattr(res, "content", [])
+                for blk in blocks:
+                    data = getattr(blk, "data", None) or getattr(blk, "text", None)
+                    if isinstance(data, dict):
+                        return {"ok": True, **data}
+                    if isinstance(data, str):
+                        try:
+                            parsed = json.loads(data)
+                            if isinstance(parsed, dict):
+                                return {"ok": True, **parsed}
+                        except Exception:
+                            pass
+                return {"ok": True, "raw": str(blocks[0].text) if blocks else None}
+            except Exception as exc:
+                return {"ok": False, "error": str(exc)}
+
+
+def search_scraped_pages_via_mcp(state_json: Dict[str, Any], url_contains: Optional[str] = None, text_contains: Optional[str] = None, limit: int = 10) -> Dict[str, Any]:
+    """Ping geo2neo MCP and search scraped pages; write to state."""
+    current = deepcopy(state_json or {})
+    # Ping first
+    try:
+        # use geo-fetch-mcp for both ping and search since the search tool lives there
+        ping_out = _run_coro_blocking(_async_call_mcp_server("geo-fetch-mcp", "ping", {}))
+    except Exception as exc:
+        ping_out = {"ok": False, "error": str(exc)}
+
+    # Build args
+    args: Dict[str, Any] = {"limit": limit}
+    if url_contains:
+        args["url_contains"] = url_contains
+    if text_contains:
+        args["text_contains"] = text_contains
+
+    try:
+        search_out = _run_coro_blocking(_async_call_mcp_server("geo-fetch-mcp", "search_scraped_pages", args))
+    except Exception as exc:
+        search_out = {"ok": False, "error": str(exc)}
+
+    legal = current.setdefault("legal", {})
+    geo2neo: Dict[str, Any] = legal.setdefault("geo2neo", {})
+    geo2neo["ping"] = ping_out
+    geo2neo["scraped_pages"] = search_out
+    return current
+

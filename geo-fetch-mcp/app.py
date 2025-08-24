@@ -474,6 +474,34 @@ def get_compensation_unique(project_id: str) -> Dict[str, Any]:
 def compensacion_biodiversidad_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("compensacionbiodiversidad")
 
+
+@mcp.tool()
+def search_scraped_pages(url_contains: Optional[str] = None, text_contains: Optional[str] = None, limit: int = 25) -> Dict[str, Any]:
+    """Search the scraped_pages table by URL substring and/or text snippet.
+
+    - url_contains: case-insensitive substring for the 'url' column
+    - text_contains: case-insensitive substring for the 'content_md' column
+    - limit: max rows to return
+    Returns: {count, rows}
+    """
+    if supabase is None:
+        raise RuntimeError("Missing SUPABASE_URL or SUPABASE_KEY in environment")
+
+    q = supabase.table("scraped_pages").select("*")
+    try:
+        if url_contains:
+            q = q.ilike("url", f"%{url_contains}%")
+        if text_contains:
+            q = q.ilike("content_md", f"%{text_contains}%")
+        if isinstance(limit, int) and limit > 0:
+            q = q.limit(limit)
+        resp = q.execute()
+        rows = getattr(resp, "data", []) or []
+        err = getattr(resp, "error", None)
+        return {"count": len(rows), "rows": rows, "error": err}
+    except Exception as exc:
+        return {"count": 0, "rows": [], "error": str(exc)}
+
 if __name__ == "__main__":
     mcp.run_stdio()
 
