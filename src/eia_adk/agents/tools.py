@@ -435,7 +435,13 @@ def geo_fetch_layers(state_json: Dict[str, Any]) -> Dict[str, Any]:
     return current
 
 
-def geo_kb_search_from_state(state_json: Dict[str, Any], per_keyword_limit: int = 5, max_keywords: int = 12) -> Dict[str, Any]:
+def geo_kb_search_from_state(
+    state_json: Dict[str, Any], 
+    per_keyword_limit: int = 2,  # Reduced from 5 to 2
+    max_keywords: int = 12,
+    max_chars_per_doc: int = 15000,  # Truncate docs to 15K chars (~3.7K tokens)
+    skip_docs_larger_than: int = 500000  # Skip docs larger than 500K chars
+) -> Dict[str, Any]:
     """Derive search keywords from state and query geo-fetch-mcp.scraped_pages for matching docs.
 
     Sources of keywords (in order):
@@ -507,16 +513,47 @@ def geo_kb_search_from_state(state_json: Dict[str, Any], per_keyword_limit: int 
             result = {"ok": False, "error": str(exc)}
         rows = result.get("rows") or []
         for row in rows:
+            # Filter out documents that are too large
+            content_md = row.get("content_md", "") or ""
+            content_length = len(content_md)
+            
+            if content_length > skip_docs_larger_than:
+                # Skip extremely large documents to prevent token overflow
+                continue
+                
+            # Truncate content if it's too long
+            if content_length > max_chars_per_doc:
+                truncated_content = content_md[:max_chars_per_doc] + "\n\n[Content truncated...]"
+                row = row.copy()  # Don't modify original
+                row["content_md"] = truncated_content
+                row["_original_length"] = content_length
+                row["_truncated"] = True
+            
             url = str(row.get("url") or "")
             key = url or row.get("id") or str(len(aggregated))
             if key not in aggregated:
                 aggregated[key] = row
 
-    # Save into state
+    # Save into state with content filtering stats
     kb = ((current.setdefault("legal", {})).setdefault("kb", {}))
     kb["keywords"] = uniq
     docs = list(aggregated.values())
-    kb["scraped_pages"] = {"count": len(docs), "rows": docs}
+    
+    # Add metadata about content processing
+    truncated_count = sum(1 for doc in docs if doc.get("_truncated", False))
+    total_chars = sum(len(doc.get("content_md", "")) for doc in docs)
+    
+    kb["scraped_pages"] = {
+        "count": len(docs), 
+        "rows": docs,
+        "_metadata": {
+            "truncated_docs": truncated_count,
+            "total_chars": total_chars,
+            "estimated_tokens": total_chars // 4,
+            "per_keyword_limit": per_keyword_limit,
+            "max_chars_per_doc": max_chars_per_doc
+        }
+    }
     return current
 
 
