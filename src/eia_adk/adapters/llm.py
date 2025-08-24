@@ -1,6 +1,10 @@
 import os
 from dataclasses import dataclass
 from typing import Optional, Any
+import json
+import os
+from urllib import request as _urlrequest
+from urllib.error import URLError as _URLError, HTTPError as _HTTPError
 
 
 try:
@@ -65,6 +69,39 @@ class LlmRunner:
         )
 
     def ask(self, prompt: str, schema: Optional[dict] = None) -> str:
+        # 1) Hard mock: return fixed JSON/text from env
+        fake = os.getenv("EIA_FAKE_LLM_JSON")
+        if fake:
+            return fake
+
+        # 2) Local LLM (e.g., Ollama) without cloud credits
+        # Configure with EIA_USE_LOCAL_LLM=1 and optional EIA_LOCAL_LLM_URL
+        if os.getenv("EIA_USE_LOCAL_LLM") in ("1", "true", "True"):
+            url = os.getenv("EIA_LOCAL_LLM_URL", "http://127.0.0.1:11434/api/generate")
+            model = os.getenv("EIA_LOCAL_LLM_MODEL", self.cfg.primary)
+            payload = {"model": model, "prompt": prompt, "stream": False}
+            try:
+                req = _urlrequest.Request(
+                    url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with _urlrequest.urlopen(req, timeout=60) as resp:
+                    body = resp.read().decode("utf-8", errors="ignore")
+                    try:
+                        data = json.loads(body)
+                        # Ollama: {"response": "..."}
+                        if isinstance(data, dict) and "response" in data:
+                            return str(data["response"])
+                    except Exception:
+                        pass
+                    return body
+            except (_HTTPError, _URLError) as exc:
+                # Fall through to cloud if local fails
+                last_err = exc  # noqa: F841
+
+        # 3) Cloud models
         last_err: Optional[Exception] = None
         for model in (self.cfg.primary, self.cfg.fallback):
             try:

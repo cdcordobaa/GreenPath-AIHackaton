@@ -1,5 +1,6 @@
 import os
 from typing import Optional, Dict, Any
+import orjson
 
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -29,6 +30,26 @@ def _supabase_fetch_all_rows(table_name: str) -> Dict[str, Any]:
     rows = getattr(resp, "data", []) or []
     err = getattr(resp, "error", None)
     return {"rows": rows, "count": len(rows), "error": err}
+
+
+def _distinct_union_datasets(*datasets: Dict[str, Any]) -> Dict[str, Any]:
+    seen: set[bytes] = set()
+    unique_rows = []
+    for ds in datasets:
+        rows = ds.get("rows", []) or []
+        for row in rows:
+            try:
+                key = orjson.dumps(row, option=orjson.OPT_SORT_KEYS)
+            except Exception:
+                # Fallback if row contains non-JSON-serializable values
+                try:
+                    key = orjson.dumps({k: str(v) for k, v in row.items()}, option=orjson.OPT_SORT_KEYS)
+                except Exception:
+                    key = repr(row).encode()
+            if key not in seen:
+                seen.add(key)
+                unique_rows.append(row)
+    return {"unique_rows": unique_rows, "unique_count": len(unique_rows)}
 
 
 @mcp.tool()
@@ -99,6 +120,13 @@ def get_soils_compendium(project_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
+def get_soils_unique(project_id: str) -> Dict[str, Any]:
+    capacidad = capacidad_uso_tierra_query(project_id)
+    uniq = _distinct_union_datasets(capacidad)
+    return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
+
+
+@mcp.tool()
 def get_hydrology_compendium(project_id: str) -> Dict[str, Any]:
     cuencas = _supabase_fetch_all_rows("CuencaHidrografica")
     ocupacion = _supabase_fetch_all_rows("ocupacioncauce")
@@ -119,6 +147,16 @@ def get_hydrology_compendium(project_id: str) -> Dict[str, Any]:
             "usosyusuariosrecursohidrico": usos_usuarios,
         },
     }
+
+
+@mcp.tool()
+def get_hydrology_unique(project_id: str) -> Dict[str, Any]:
+    cuencas = _supabase_fetch_all_rows("CuencaHidrografica")
+    ocupacion = _supabase_fetch_all_rows("ocupacioncauce")
+    muestras_super = _supabase_fetch_all_rows("puntomuestreoaguasuper")
+    usos_usuarios = _supabase_fetch_all_rows("usosyusuariosrecursohidrico")
+    uniq = _distinct_union_datasets(cuencas, ocupacion, muestras_super, usos_usuarios)
+    return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
 @mcp.tool()
@@ -158,6 +196,15 @@ def get_hydrogeology_compendium(project_id: str) -> Dict[str, Any]:
             "puntomuestreoaguasubter": muestras_sub,
         },
     }
+
+
+@mcp.tool()
+def get_hydrogeology_unique(project_id: str) -> Dict[str, Any]:
+    punto_hi = _supabase_fetch_all_rows("PuntoHidrogeologico")
+    puntohi_lower = _supabase_fetch_all_rows("puntohidrogeologico")
+    muestras_sub = _supabase_fetch_all_rows("puntomuestreoaguasubter")
+    uniq = _distinct_union_datasets(punto_hi, puntohi_lower, muestras_sub)
+    return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
 @mcp.tool()
@@ -204,6 +251,19 @@ def get_biotic_compendium(project_id: str) -> Dict[str, Any]:
             "transectomuestreofauna": tran_fauna,
         },
     }
+
+
+@mcp.tool()
+def get_biotic_unique(project_id: str) -> Dict[str, Any]:
+    a_pg = _supabase_fetch_all_rows("aprovechaforestalpg")
+    a_pt = _supabase_fetch_all_rows("aprovechaforestalpt")
+    cob = _supabase_fetch_all_rows("coberturatierra")
+    eco = _supabase_fetch_all_rows("ecosistema")
+    pm_fauna = _supabase_fetch_all_rows("puntomuestreofauna")
+    pm_flora = _supabase_fetch_all_rows("puntomuestreoflora")
+    tran_fauna = _supabase_fetch_all_rows("transectomuestreofauna")
+    uniq = _distinct_union_datasets(a_pg, a_pt, cob, eco, pm_fauna, pm_flora, tran_fauna)
+    return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
 @mcp.tool()
@@ -298,6 +358,30 @@ def get_risk_management_compendium(project_id: str) -> Dict[str, Any]:
 
 
 @mcp.tool()
+def get_risk_management_unique(project_id: str) -> Dict[str, Any]:
+    am_otras = _supabase_fetch_all_rows("amenazaotras")
+    el_ln = _supabase_fetch_all_rows("elementosexpuestosln")
+    el_pg = _supabase_fetch_all_rows("elementosexpuestospg")
+    el_pt = _supabase_fetch_all_rows("elementosexpuestospt")
+    esc_inc = _supabase_fetch_all_rows("escenriesgoincendio")
+    esc_mov = _supabase_fetch_all_rows("escenriesgomovmasa")
+    eventos = _supabase_fetch_all_rows("eventos_pt")
+    export_out = _supabase_fetch_all_rows("export_output")
+    sus_av = _supabase_fetch_all_rows("suscept_aventorren")
+    sus_inc = _supabase_fetch_all_rows("suscept_incendios")
+    sus_inu = _supabase_fetch_all_rows("suscept_inundaciones")
+    sus_mov = _supabase_fetch_all_rows("suscept_movmasa")
+    vul_ln = _supabase_fetch_all_rows("vulnerabilidad_ln")
+    vul_pg = _supabase_fetch_all_rows("vulnerabilidad_pg")
+    vul_pt = _supabase_fetch_all_rows("vulnerabilidad_pt")
+    uniq = _distinct_union_datasets(
+        am_otras, el_ln, el_pg, el_pt, esc_inc, esc_mov, eventos, export_out,
+        sus_av, sus_inc, sus_inu, sus_mov, vul_ln, vul_pg, vul_pt
+    )
+    return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
+
+
+@mcp.tool()
 def amenaza_otras_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("amenazaotras")
 
@@ -381,6 +465,11 @@ def get_compensation_compendium(project_id: str) -> Dict[str, Any]:
     }
 
 
+@mcp.tool()
+def get_compensation_unique(project_id: str) -> Dict[str, Any]:
+    comp_bio = _supabase_fetch_all_rows("compensacionbiodiversidad")
+    uniq = _distinct_union_datasets(comp_bio)
+    return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 @mcp.tool()
 def compensacion_biodiversidad_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("compensacionbiodiversidad")

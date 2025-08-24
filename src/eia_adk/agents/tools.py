@@ -627,3 +627,56 @@ def derive_impacts_from_compendia(state_json: Dict[str, Any], model: Optional[st
 
     return current
 
+
+# =====================
+# MOCK tools (no external calls)
+# =====================
+def mock_geo_fetch_all_compendia(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    current = deepcopy(state_json or {})
+    geo = current.setdefault("geo", {})
+    comp = {
+        "get_soils_compendium": {
+            "summary": {"CapacidadUsoTierra": 2},
+            "datasets": {"CapacidadUsoTierra": {"count": 2, "rows": [{"id": 1}, {"id": 2}]}}
+        },
+        "get_hydrology_compendium": {
+            "summary": {"CuencaHidrografica": 1, "ocupacioncauce": 0, "puntomuestreoaguasuper": 1, "usosyusuariosrecursohidrico": 0},
+            "datasets": {}
+        },
+        "get_biotic_compendium": {
+            "summary": {"ecosistema": 1, "coberturatierra": 1},
+            "datasets": {}
+        },
+        "get_risk_management_compendium": {
+            "summary": {"escenriesgoincendio": 0, "suscept_inundaciones": 1},
+            "datasets": {}
+        },
+        "get_compensation_compendium": {
+            "summary": {"compensacionbiodiversidad": 0},
+            "datasets": {}
+        },
+    }
+    geo["compendia"] = comp
+    # Also write summary rollups
+    summary = geo.setdefault("summary", {})
+    for name, payload in comp.items():
+        s = payload.get("summary") or {}
+        try:
+            summary[f"{name}:total"] = sum(int(v) for v in s.values())
+        except Exception:
+            summary[f"{name}:total"] = 0
+    return current
+
+
+def mock_derive_impacts_from_compendia(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    current = deepcopy(state_json or {})
+    impacts = current.setdefault("impacts", {"categories": [], "entities": []})
+    impacts["categories"] = ["suelo", "hidrografía", "biota", "riesgo", "compensaciones"]
+    impacts["entities"] = [
+        {"category": "suelo", "entity": "Capacidad de uso de la tierra conflictiva", "source_compendium": "get_soils_compendium", "evidence": "CapacidadUsoTierra: 2"},
+        {"category": "hidrografía", "entity": "Presencia de cuenca hidográfica", "source_compendium": "get_hydrology_compendium", "evidence": "CuencaHidrografica: 1"},
+        {"category": "biota", "entity": "Ecosistema sensible identificado", "source_compendium": "get_biotic_compendium", "evidence": "ecosistema: 1"},
+        {"category": "riesgo", "entity": "Susceptibilidad a inundaciones", "source_compendium": "get_risk_management_compendium", "evidence": "suscept_inundaciones: 1"},
+    ]
+    return current
+

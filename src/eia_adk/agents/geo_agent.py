@@ -1,5 +1,11 @@
 from google.adk.agents.llm_agent import Agent
-from .tools import geo_fetch_all_compendia, derive_impacts_from_compendia
+import os
+from .tools import (
+    geo_fetch_all_compendia,
+    derive_impacts_from_compendia,
+    mock_geo_fetch_all_compendia,
+    mock_derive_impacts_from_compendia,
+)
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams, StdioServerParameters
 from pathlib import Path
 import os
@@ -21,6 +27,8 @@ mcp_geo_fetch_toolset = MCPToolset(
     ),
 )
 
+USE_MOCKS = os.getenv('EIA_USE_MOCKS', '0') in ('1', 'true', 'True')
+
 agent = Agent(
     model='gemini-2.5-flash',
     name='geo_agent',
@@ -31,7 +39,11 @@ agent = Agent(
         '2) Llama derive_impacts_from_compendia(state_json) para normalizar categorías y entidades (triggers).\n'
         'Devuelve el estado final con geo.compendia e impacts.* poblados.\n'
     ),
-    tools=[mcp_geo_fetch_toolset, geo_fetch_all_compendia, derive_impacts_from_compendia],
+    tools=[
+        mcp_geo_fetch_toolset,
+        mock_geo_fetch_all_compendia if USE_MOCKS else geo_fetch_all_compendia,
+        mock_derive_impacts_from_compendia if USE_MOCKS else derive_impacts_from_compendia,
+    ],
 )
 
 
