@@ -22,6 +22,7 @@ mcp_geo_fetch_toolset = MCPToolset(
             command=_python_cmd,
             args=[str(_mcp_entry)],
         ),
+        timeout=30.0,  # Increase timeout from 5s to 30s
     ),
 )
 

@@ -1,0 +1,218 @@
+{
+  "project": {
+    "project_id": "real_project_test",
+    "project_name": "Electrical_Line_Project"
+  },
+  "config": {
+    "layers": [
+      "soils",
+      "biotic",
+      "hydrology"
+    ]
+  },
+  "geo": {
+    "layers": {
+      "soils": {
+        "processed": true,
+        "features": 245
+      },
+      "biotic": {
+        "processed": true,
+        "features": 128
+      },
+      "hydrology": {
+        "processed": true,
+        "features": 67
+      }
+    },
+    "structured_summary": {
+      "count": 440,
+      "rows": [
+        {
+          "cantidad": 245,
+          "categoria": "SOILS",
+          "tipo": "Suelos"
+        },
+        {
+          "cantidad": 128,
+          "categoria": "BIOTIC",
+          "tipo": "Fauna"
+        },
+        {
+          "cantidad": 67,
+          "categoria": "HYDROLOGY",
+          "tipo": "Hidrología"
+        },
+        {
+          "cantidad": 89,
+          "categoria": "BIOTIC",
+          "tipo": "Flora"
+        },
+        {
+          "cantidad": 45,
+          "categoria": "GEOLOGY",
+          "tipo": "Geología"
+        }
+      ]
+    }
+  },
+  "legal": {
+    "geo2neo": {
+      "alias_input": [
+        "Biótico",
+        "Compensación Ambiental",
+        "Gestión de Riesgo",
+        "Hidrogeología",
+        "Hidrología",
+        "Suelos",
+        "Fauna Silvestre",
+        "Flora Nativa",
+        "Licencia Ambiental",
+        "Evaluación de Impacto"
+      ],
+      "alias_mapping": {
+        "ok": true,
+        "results": [
+          {
+            "category": "Environmental Impact",
+            "instrumentsAndPermits": [
+              {
+                "instrumentName": "Licencia Ambiental",
+                "modalities": [
+                  {
+                    "affectedResource": "Biodiversidad"
+                  },
+                  {
+                    "affectedResource": "Recurso Hídrico"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "kb": {
+      "keywords": [
+        "Biótico",
+        "Compensación Ambiental",
+        "Gestión de Riesgo",
+        "Hidrogeología",
+        "Hidrología",
+        "Suelos",
+        "Fauna Silvestre",
+        "Flora Nativa",
+        "Licencia Ambiental",
+        "Evaluación de Impacto"
+      ],
+      "scraped_pages": {
+        "count": 12,
+        "rows": [
+          {
+            "url": "https://anla.gov.co/doc_0",
+            "title": "Legal Document 0",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_1",
+            "title": "Legal Document 1",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_2",
+            "title": "Legal Document 2",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_3",
+            "title": "Legal Document 3",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_4",
+            "title": "Legal Document 4",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_5",
+            "title": "Legal Document 5",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_6",
+            "title": "Legal Document 6",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_7",
+            "title": "Legal Document 7",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_8",
+            "title": "Legal Document 8",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_9",
+            "title": "Legal Document 9",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_10",
+            "title": "Legal Document 10",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          },
+          {
+            "url": "https://anla.gov.co/doc_11",
+            "title": "Legal Document 11",
+            "content_md": "Optimized legal content...",
+            "_truncated": true,
+            "_original_length": 150000,
+            "_source_keyword": "Sample Keyword"
+          }
+        ],
+        "_metadata": {
+          "optimization_mode": "balanced",
+          "estimated_tokens": 45000,
+          "processing_time": 3.2,
+          "truncated_docs": 8,
+          "cache_used": false
+        }
+      }
+    }
+  }
+}

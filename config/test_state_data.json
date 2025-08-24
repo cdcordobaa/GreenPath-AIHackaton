@@ -1,0 +1,81 @@
+{
+  "project": {
+    "project_id": "test_project_001",
+    "project_name": "Test_Environmental_Project",
+    "description": "Test project for geo_kb_agent optimization"
+  },
+  "config": {
+    "layers": [
+      "soils",
+      "biotic",
+      "hydrology",
+      "geology"
+    ]
+  },
+  "geo": {
+    "layers": {
+      "soils": {
+        "processed": true,
+        "features": 100
+      },
+      "biotic": {
+        "processed": true,
+        "features": 75
+      },
+      "hydrology": {
+        "processed": true,
+        "features": 50
+      }
+    },
+    "structured_summary": {
+      "count": 225,
+      "rows": [
+        {
+          "cantidad": 100,
+          "categoria": "SOILS",
+          "tipo": "Suelos"
+        },
+        {
+          "cantidad": 75,
+          "categoria": "BIOTIC",
+          "tipo": "Fauna"
+        },
+        {
+          "cantidad": 50,
+          "categoria": "HYDROLOGY",
+          "tipo": "Hidrología"
+        }
+      ]
+    }
+  },
+  "legal": {
+    "geo2neo": {
+      "alias_input": [
+        "Biótico",
+        "Compensación",
+        "Gestión de Riesgo",
+        "Hidrogeología",
+        "Hidrología",
+        "Suelos"
+      ],
+      "alias_mapping": {
+        "ok": true,
+        "results": [
+          {
+            "category": "Environmental",
+            "instrumentsAndPermits": [
+              {
+                "instrumentName": "Licencia Ambiental",
+                "modalities": [
+                  {
+                    "affectedResource": "Biodiversidad"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

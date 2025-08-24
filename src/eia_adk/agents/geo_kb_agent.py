@@ -4,9 +4,9 @@ from pathlib import Path
 import os
 from .tools import (
     search_scraped_pages_via_mcp,
-    geo_kb_search_from_state,
     mock_geo_kb_search_from_state,
 )
+from .enhanced_geo_kb_tools import enhanced_geo_kb_search_from_state
 
 
 # Configure MCP stdio toolset for mcp-geo2neo
@@ -22,6 +22,7 @@ mcp_geo2neo_toolset = MCPToolset(
             command=_python_cmd,
             args=[str(_mcp_entry)],
         ),
+        timeout=30.0,  # Increase timeout from 5s to 30s
     ),
 )
 
@@ -29,15 +30,16 @@ mcp_geo2neo_toolset = MCPToolset(
 agent = Agent(
     model='gemini-2.5-flash',
     name='geo_kb_agent',
-    description='Interprets geo2neo results and queries the knowledge base via MCP.',
+    description='Interprets geo2neo results and queries the knowledge base via MCP with intelligent content optimization.',
     instruction=(
         'Deriva palabras clave desde state.legal.geo2neo y state.geo.structured_summary.\n'
-        'Luego llama geo_kb_search_from_state para almacenar coincidencias en legal.kb.scraped_pages.\n'
+        'Luego llama enhanced_geo_kb_search_from_state con optimization_mode="balanced" para almacenar coincidencias optimizadas en legal.kb.scraped_pages.\n'
+        'La función optimizada reduce automáticamente el contenido a ~50K tokens para evitar límites de rate limiting.\n'
         'En modo MOCK usa mock_geo_kb_search_from_state.'
     ),
     tools=[
         mcp_geo2neo_toolset,
-        mock_geo_kb_search_from_state if os.getenv('EIA_USE_MOCKS', '0') in ('1','true','True') else geo_kb_search_from_state,
+        mock_geo_kb_search_from_state if os.getenv('EIA_USE_MOCKS', '0') in ('1','true','True') else enhanced_geo_kb_search_from_state,
     ],
 )
 

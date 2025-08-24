@@ -1,1 +1,39 @@
-{}
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "sample_line_1",
+        "name": "Sample River Line",
+        "type": "hydro.rivers",
+        "description": "Sample river line for testing EIA pipeline"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.0, 4.7],
+          [-73.9, 4.8],
+          [-73.8, 4.9]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "sample_line_2",
+        "name": "Sample Ecosystem Boundary",
+        "type": "ecosystems",
+        "description": "Sample ecosystem boundary for testing"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.1, 4.6],
+          [-73.9, 4.6],
+          [-73.7, 4.7]
+        ]
+      }
+    }
+  ]
+}

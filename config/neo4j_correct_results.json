@@ -1,0 +1,615 @@
+{
+  "ok": true,
+  "count": 3,
+  "results": [
+    {
+      "category": "Gestión Integral del Recurso Hídrico",
+      "instrumentsAndPermits": [
+        {
+          "modalities": [
+            {
+              "subcategoryName": "Explotación de Acuíferos",
+              "compensationCriteria": [
+                "**Tasa por Utilización de Agua:** Pago económico obligatorio por el volumen de agua subterránea extraído, con el mismo fundamento legal que las aguas superficiales.",
+                "**Protección de Zonas de Recarga:** Inversión en la conservación o restauración de áreas identificadas como de recarga para el acuífero explotado, como medida para asegurar la sostenibilidad del recurso a largo plazo."
+              ],
+              "affectedResource": "Agua Subterránea",
+              "managementCriteria": [
+                "Instalación de medidores de caudal en cada pozo de explotación.",
+                "Monitoreo trimestral de los niveles piezométricos en el pozo de explotación y en pozos de observación para evaluar el comportamiento y posible abatimiento del acuífero.",
+                "Análisis fisicoquímico y microbiológico periódico del agua extraída para monitorear su calidad y detectar posible contaminación.",
+                "Plan de sellado técnico de pozos en caso de abandono para prevenir la contaminación cruzada de acuíferos."
+              ]
+            },
+            {
+              "subcategoryName": "Uso Agrícola, Pecuario e Industrial",
+              "compensationCriteria": [
+                "**Tasa por Utilización de Agua:** Pago económico calculado con base en el volumen captado y la tarifa regional. Su fin es internalizar el costo ambiental del uso del recurso.",
+                "**Inversión Forzosa del 1% (Principalmente para proyectos energéticos que requieren Licencia Ambiental):** Inversión obligatoria del 1% del costo del proyecto en la recuperación y conservación de la cuenca hidrográfica."
+              ],
+              "affectedResource": "Agua Superficial",
+              "managementCriteria": [
+                "Diseño e implementación de un PUEAA con metas cuantificables de reducción del consumo y recirculación de agua.",
+                "Instalación de medidores de caudal con calibración certificada en cada punto de captación y reporte de consumos.",
+                "Diseño de la bocatoma con rejillas que impidan la succión de fauna acuática (ictiofauna) y estructuras de desarenación.",
+                "Elaboración e implementación del Plan de Gestión Integral de Residuos Peligrosos (RESPEL) para los residuos de la maquinaria y procesos (aceites, agroquímicos)."
+              ]
+            },
+            {
+              "subcategoryName": "Uso para Abastecimiento Doméstico y Saneamiento",
+              "compensationCriteria": [
+                "**Tasa por Utilización de Agua (Decreto 1076 de 2015, Art. 2.2.9.6.1.1.):** Pago económico obligatorio a la autoridad ambiental. Para el uso doméstico, la tarifa puede tener consideraciones especiales, pero el objetivo sigue siendo financiar la protección y recuperación de la cuenca."
+              ],
+              "affectedResource": "Agua Superficial",
+              "managementCriteria": [
+                "Instalación de dispositivos de medición de caudal (macro-medidores) en la captación principal del sistema de acueducto.",
+                "Monitoreo periódico de la calidad del agua cruda en el punto de captación, según los parámetros de la Resolución 2115 de 2007.",
+                "Implementación de un Programa para el Uso Eficiente y Ahorro del Agua (PUEAA) enfocado en la red de distribución para controlar pérdidas.",
+                "Elaboración de un plan de contingencia para la protección de la bocatoma ante eventos de crecientes, derrames o sequía."
+              ]
+            }
+          ],
+          "instrumentName": "Concesión de Aguas"
+        },
+        {
+          "modalities": [
+            {
+              "subcategoryName": "Obras Transversales (Puentes, Cruces Subfluviales)",
+              "compensationCriteria": [
+                "**Restauración Ecológica de Rondas Hídricas:** Compensación a través de la reforestación y estabilización de las riberas del río en un área ecológicamente equivalente a la afectada."
+              ],
+              "affectedResource": "Ecosistemas Fluviales y Riparios",
+              "managementCriteria": [
+                "Manejo de sedimentos y control de la turbidez durante la fase de construcción.",
+                "Restauración de las zonas de acceso y campamentos una vez finalizada la obra."
+              ]
+            }
+          ],
+          "instrumentName": "Permiso de Ocupación de Cauces"
+        },
+        {
+          "modalities": [
+            {
+              "subcategoryName": "Vertimiento a Cuerpos de Aguas Superficiales",
+              "compensationCriteria": [
+                "**Tasa Retributiva por la Carga Contaminante Vertida (Decreto 1076 de 2015, Art. 2.2.9.7.1.1.):** Pago económico basado en la carga (kg/día) de contaminantes específicos (como DBO5 y Sólidos Suspendidos Totales) vertida al cuerpo de agua. Se calcula multiplicando la carga total del contaminante por su tarifa regional, incentivando así la reducción de la contaminación."
+              ],
+              "affectedResource": "Agua (calidad)",
+              "managementCriteria": [
+                "Diseño, construcción y operación de una Planta de Tratamiento de Aguas Residuales (PTAR) que garantice el cumplimiento de los límites máximos permisibles de la Resolución 631 de 2015 o la norma que la modifique.",
+                "Elaboración de un manual de operación y mantenimiento de la PTAR y registro en bitácoras diarias de los parámetros de control (pH, caudal, etc.).",
+                "Realización de caracterizaciones del afluente (agua cruda) y efluente (agua tratada) con la frecuencia establecida en el permiso por un laboratorio acreditado por el IDEAM.",
+                "Monitoreo de la calidad del cuerpo de agua receptor en un punto aguas arriba y otro aguas abajo del vertimiento para evaluar el impacto.",
+                "Elaboración e implementación de un Plan de Gestión Integral de Residuos (incluyendo RESPEL para los lodos contaminados generados en la PTAR)."
+              ]
+            },
+            {
+              "subcategoryName": "Vertimiento al Suelo",
+              "compensationCriteria": [
+                "**Planes de Remediación y Póliza de Responsabilidad:** Obligación de remediar cualquier contaminación probada en el suelo o agua subterránea, respaldada por una póliza de seguro de responsabilidad civil extracontractual que cubra daños ambientales y a terceros."
+              ],
+              "affectedResource": "Suelo",
+              "managementCriteria": [
+                "Realización de estudios técnicos de soporte como pruebas de permeabilidad y análisis de la vulnerabilidad del acuífero para demostrar la idoneidad del suelo.",
+                "Construcción y operación de un sistema de tratamiento primario y secundario (ej. tanque séptico y campo de infiltración) con un diseño de ingeniería detallado.",
+                "Construcción de pozos de monitoreo aguas arriba y aguas abajo del área de infiltración para el seguimiento periódico de la calidad del agua subterránea.",
+                "Mantenimiento periódico del sistema, incluyendo la purga de lodos del tanque séptico por una empresa con licencia ambiental.",
+                "Aislamiento y señalización del área de infiltración para restringir el acceso."
+              ]
+            }
+          ],
+          "instrumentName": "Permiso de Vertimientos"
+        }
+      ],
+      "associatedNorms": [
+        {
+          "childNorms": [
+            {
+              "relationType": "Reglamenta / condiciona",
+              "childNormName": "Decreto 1791 de 1996"
+            }
+          ],
+          "issuer": "MADS / CAR",
+          "component": "Biótica / Forestal",
+          "normName": "Aprovechamiento Forestal (Dec. 1791/1996) - ejecución",
+          "requiredData": "Inventarios, planes, talas autorizadas, trazabilidad.",
+          "year": "1996",
+          "obligations": "Cumplir autorizaciones, salvoconductos y medidas de compensación; registrar movilización autorizada.",
+          "type": "Instrumento ambiental (decreto)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Obliga / compensa",
+              "childNormName": "Decreto 1900 de 2006 / Ley 99 art. 43"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Hidrología / Biótico",
+          "normName": "Inversión forzosa del 1% (proyectos que afectan recurso hídrico)",
+          "requiredData": "Diagnóstico hídrico, plan de inversión, convenios.",
+          "year": "2006",
+          "obligations": "Formular, ejecutar y reportar la inversión del 1% cuando aplique; articular con la autoridad ambiental.",
+          "type": "Instrumento económico (decreto)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Condiciona / exige",
+              "childNormName": "Decreto 1575 de 2007"
+            }
+          ],
+          "issuer": "ANLA o CAR",
+          "component": "Biótica / Hídrico / Hidrología",
+          "normName": "Permiso de Concesión de Aguas",
+          "requiredData": "Mediciones hidrométricas, balances, registros de consumo.",
+          "year": "Vigente",
+          "obligations": "Monitorear caudales, niveles y consumos; pagar tasa por uso; reportar cumplimiento de caudales concesionados.",
+          "type": "Instrumento ambiental (permiso)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Exige / controla",
+              "childNormName": "Resolución 631 de 2015"
+            }
+          ],
+          "issuer": "MADS / ANLA / CAR",
+          "component": "Biótica / Hidrología",
+          "normName": "Permiso de Vertimientos - Límites (Res. 631/2015)",
+          "requiredData": "Muestreos, laboratorio acreditado, QA/QC, puntos y frecuencias.",
+          "year": "2015",
+          "obligations": "Cumplir valores máximos permisibles; ejecutar monitoreo de efluentes; reportar al ICA.",
+          "type": "Instrumento ambiental (permiso)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Obliga / liquida",
+              "childNormName": "D.1076/2015 (art. 2.2.9.6.1.4)"
+            }
+          ],
+          "issuer": "MADS/CAR",
+          "component": "Hídrico / Biótico",
+          "normName": "Tasa por uso del agua (D.1076/2015)",
+          "requiredData": "Caudales concesionados, períodos, tarifas.",
+          "year": "2015",
+          "obligations": "Liquidar y pagar la tasa por uso del agua; anexar soportes y cálculos.",
+          "type": "Instrumento económico (tasa)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Obliga / programa",
+              "childNormName": "Ley 373 de 1997"
+            }
+          ],
+          "issuer": "Congreso",
+          "component": "Hídrico/biótico",
+          "normName": "Uso eficiente y ahorro del agua (PUEAA)",
+          "requiredData": "Diagnóstico oferta/demanda, metas quinquenales.",
+          "year": "1997",
+          "obligations": "Adoptar programas de uso eficiente y ahorro de agua cuando aplique; reportar avances.",
+          "type": "Normativa (ley)"
+        }
+      ]
+    },
+    {
+      "category": "Gestión Integral de Flora y Bosques",
+      "instrumentsAndPermits": [
+        {
+          "modalities": [
+            {
+              "subcategoryName": "Aprovechamiento Forestal Único (Desmonte)",
+              "compensationCriteria": [
+                "**Compensación por Pérdida de Biodiversidad (Resolución 256 de 2018 - Manual de Compensaciones del Componente Biótico):** Obligación de restaurar ecológicamente o preservar un área de ecosistema ecológicamente equivalente a la afectada. El cálculo del área a compensar es mandatorio y se basa en fórmulas que consideran el tipo de ecosistema, su estado de amenaza, el área del impacto y un factor de compensación regional."
+              ],
+              "affectedResource": "Flora y Bosques",
+              "managementCriteria": [
+                "Realización de un inventario forestal al 100% que identifique y georreferencie todos los individuos, especialmente los de especies vedadas o amenazadas.",
+                "Implementación de un Plan de Rescate, Ahuyentamiento y Reubicación de Fauna Silvestre, ejecutado por biólogos antes y durante las actividades.",
+                "Manejo de la biomasa vegetal mediante técnicas de chipeado y reincorporación al suelo para protegerlo de la erosión, prohibiendo explícitamente las quemas abiertas.",
+                "Implementación inmediata de medidas de control de erosión como revegetalización temporal con especies nativas, instalación de barreras de sedimento (trinchos) y manejo de aguas de escorrentía.",
+                "Elaboración e implementación del Plan de Gestión Integral de Residuos Peligrosos (RESPEL) para los residuos de la maquinaria (aceites, filtros, combustibles)."
+              ]
+            }
+          ],
+          "instrumentName": "Permiso de Aprovechamiento Forestal"
+        }
+      ],
+      "associatedNorms": [
+        {
+          "childNorms": [
+            {
+              "relationType": "Reglamenta / condiciona",
+              "childNormName": "Decreto 1791 de 1996"
+            }
+          ],
+          "issuer": "MADS / CAR",
+          "component": "Biótica / Forestal",
+          "normName": "Aprovechamiento Forestal (Dec. 1791/1996) - ejecución",
+          "requiredData": "Inventarios, planes, talas autorizadas, trazabilidad.",
+          "year": "1996",
+          "obligations": "Cumplir autorizaciones, salvoconductos y medidas de compensación; registrar movilización autorizada.",
+          "type": "Instrumento ambiental (decreto)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Pre-licencia (DAA)",
+              "childNormName": "DAA conforme TDR-11"
+            }
+          ],
+          "issuer": "ANLA",
+          "component": "Geoespacial / Integral",
+          "normName": "Diagnóstico Ambiental de Alternativas (DAA)",
+          "requiredData": "Documento DAA y anexos cartográficos y bases MAG.",
+          "year": "Vigente",
+          "obligations": "Presentar alternativas de trazado y análisis multicriterio; justificar alternativa seleccionada.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Exige / gestiona",
+              "childNormName": "Resolución 472 de 2017 (mod. 1257 de 2021)"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Residuos / Construcción",
+          "normName": "Gestión de RCD - Residuos de Construcción y Demolición (Res. 472/2017 y 1257/2021)",
+          "requiredData": "Inventarios de RCD, metas de aprovechamiento, gestores.",
+          "year": "2017/2021",
+          "obligations": "Formular y ejecutar plan de gestión de RCD, con aprovechamiento y disposición final conforme.",
+          "type": "Normativa técnica (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Reglamenta / exige",
+              "childNormName": "Decreto 4741/2005 (compilado en D.1076/2015)"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Residuos Peligrosos/Suelos/cuerpos de agua/flora/fauna",
+          "normName": "Gestión de residuos peligrosos (Decreto 4741/2005 - compilado en D.1076)",
+          "requiredData": "Inventarios RESPEL, manifiestos, plan de gestión.",
+          "year": "2005/2015",
+          "obligations": "Prevenir y gestionar RESPEL; planes y reportes; almacenamiento, transporte y disposición.",
+          "type": "Normativa ambiental (decreto)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Previo a construcción (licenciamiento)",
+              "childNormName": "Decreto 1076/2015, Ley 99/1993"
+            }
+          ],
+          "issuer": "ANLA (o CAR según competencia)",
+          "component": "Integral (ambiental, social y territorial)",
+          "normName": "Licencia Ambiental",
+          "requiredData": "Resolución de Licencia Ambiental y obligaciones del Plan de Manejo Ambiental (PMA).",
+          "year": "Vigente",
+          "obligations": "Presentar Estudio de Impacto Ambiental (EIA), consulta previa si aplica, y demás anexos técnicos.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Define / orienta",
+              "childNormName": "Resolución 256 de 2018"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Biótica / Compensaciones",
+          "normName": "Manual de Compensaciones del Componente Biótico (Res. 256/2018)",
+          "requiredData": "Cálculo de factores, áreas equivalentes, trazabilidad espacial.",
+          "year": "2018",
+          "obligations": "Diseñar y ejecutar compensaciones por pérdida de biodiversidad (cuánto, dónde y cómo).",
+          "type": "Guía/Norma técnica (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Complementa / estandariza",
+              "childNormName": "Resolucion 1402 de 2018"
+            }
+          ],
+          "issuer": "MADS/ANLA",
+          "component": "Metodológica",
+          "normName": "Metodología General para Estudios Ambientales (MGEPEA 2018)",
+          "requiredData": "Estructuras de contenido, matrices, anexos.",
+          "year": "2018",
+          "obligations": "Asegurar coherencia entre línea base, impactos, PMA y seguimiento reportado.",
+          "type": "Guía técnica"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Integral / Biodiversidad",
+              "childNormName": "Resolución 1466 de 2014"
+            }
+          ],
+          "issuer": "ANLA / CAR (según jurisdicción)",
+          "component": "Biótico/flora/fauna",
+          "normName": "Permiso de recolección de especímenes silvestres",
+          "requiredData": "Resolución que otorga el permiso de recolección con condiciones y obligaciones.",
+          "year": "Vigente",
+          "obligations": "Presentar solicitud con justificación técnica, plan de trabajo, metodología de muestreo, listado de especies y sitios de recolección.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Obliga / registra",
+              "childNormName": "Resolución 1362 de 2007"
+            }
+          ],
+          "issuer": "MADS/IDEAM",
+          "component": "Residuos Peligrosos",
+          "normName": "Registro de Generadores de RESPEL (Res. 1362/2007)",
+          "requiredData": "Plataforma de registro, cantidades, gestores autorizados.",
+          "year": "2007",
+          "obligations": "Registrar generación de RESPEL y reportar anualmente.",
+          "type": "Instrumento administrativo (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Obliga / verifica",
+              "childNormName": "Resolución 1909 de 2017"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Biótica / Flora/Fauna",
+          "normName": "Salvoconducto Único Nacional en Línea (SUNL)",
+          "requiredData": "Registros de remoción, coordenadas, volúmenes, placas.",
+          "year": "2017",
+          "obligations": "Gestionar salvoconductos en línea para movilización de especímenes/productos forestales.",
+          "type": "Herramienta/permiso (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Biótico / ecosistemas",
+              "childNormName": "Ley 2ª de 1959"
+            }
+          ],
+          "issuer": "ANLA / CAR",
+          "component": "Biótico / ecosistemas",
+          "normName": "Sustracción de reserva forestal",
+          "requiredData": "Trámite y requisitos específicos.",
+          "year": "Vigente",
+          "obligations": "Trámite y requisitos específicos para aprovechamiento, salvoconductos y compensaciones en áreas de sustracción de reserva forestal.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Restringe / prohíbe",
+              "childNormName": "Resolución 0213 de 1977"
+            }
+          ],
+          "issuer": "INDERENA/MADS",
+          "component": "Biótica / Flora/fauna",
+          "normName": "Veda Nacional de Flora (INDERENA Res. 0213/1977)",
+          "requiredData": "Listados de especies, inventarios, actas de rescate.",
+          "year": "1977",
+          "obligations": "Prohibir intervención de especies vedadas salvo autorizaciones; reportar rescates/compensaciones.",
+          "type": "Listas de protección (resolución)"
+        }
+      ]
+    },
+    {
+      "category": "Gestión Integral de la Biodiversidad",
+      "instrumentsAndPermits": [
+        {
+          "modalities": [
+            {
+              "subcategoryName": "Colecta con Fines de Investigación o Estudios Ambientales",
+              "compensationCriteria": [
+                "**Reposición de Información y Conocimiento:** Obligación contractual de depositar duplicados de los especímenes colectados en colecciones biológicas de referencia de Colombia (ej. Instituto Humboldt, Colecciones de Universidades Nacionales, INVEMAR, SINCHI).",
+                "**Socialización de Resultados:** Obligación de entregar a la autoridad ambiental y a los institutos de investigación una copia del informe final, de las publicaciones científicas y de los datos generados, para fortalecer el Inventario Nacional de Biodiversidad."
+              ],
+              "affectedResource": "Fauna y Biodiversidad",
+              "managementCriteria": [
+                "Presentación de una metodología detallada que justifique el número de especímenes a colectar y describa las técnicas a usar (ej. redes de niebla, trampas Sherman, trampas de caída).",
+                "Aplicación de técnicas de colecta que minimicen el sufrimiento animal y el impacto en las poblaciones (ej. marcaje y liberación, colecta de muestras no invasivas).",
+                "Manejo adecuado de los especímenes colectados (preservación, etiquetado con información de campo completa).",
+                "Implementación de un protocolo de bioseguridad para evitar la introducción de enfermedades o especies exóticas y prevenir la zoonosis."
+              ]
+            }
+          ],
+          "instrumentName": "Permiso de Recolección de Especímenes de Especies Silvestres"
+        }
+      ],
+      "associatedNorms": [
+        {
+          "childNorms": [
+            {
+              "relationType": "Pre-licencia (DAA)",
+              "childNormName": "DAA conforme TDR-11"
+            }
+          ],
+          "issuer": "ANLA",
+          "component": "Geoespacial / Integral",
+          "normName": "Diagnóstico Ambiental de Alternativas (DAA)",
+          "requiredData": "Documento DAA y anexos cartográficos y bases MAG.",
+          "year": "Vigente",
+          "obligations": "Presentar alternativas de trazado y análisis multicriterio; justificar alternativa seleccionada.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Exige / gestiona",
+              "childNormName": "Resolución 472 de 2017 (mod. 1257 de 2021)"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Residuos / Construcción",
+          "normName": "Gestión de RCD - Residuos de Construcción y Demolición (Res. 472/2017 y 1257/2021)",
+          "requiredData": "Inventarios de RCD, metas de aprovechamiento, gestores.",
+          "year": "2017/2021",
+          "obligations": "Formular y ejecutar plan de gestión de RCD, con aprovechamiento y disposición final conforme.",
+          "type": "Normativa técnica (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Reglamenta / exige",
+              "childNormName": "Decreto 4741/2005 (compilado en D.1076/2015)"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Residuos Peligrosos/Suelos/cuerpos de agua/flora/fauna",
+          "normName": "Gestión de residuos peligrosos (Decreto 4741/2005 - compilado en D.1076)",
+          "requiredData": "Inventarios RESPEL, manifiestos, plan de gestión.",
+          "year": "2005/2015",
+          "obligations": "Prevenir y gestionar RESPEL; planes y reportes; almacenamiento, transporte y disposición.",
+          "type": "Normativa ambiental (decreto)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Previo a construcción (licenciamiento)",
+              "childNormName": "Decreto 1076/2015, Ley 99/1993"
+            }
+          ],
+          "issuer": "ANLA (o CAR según competencia)",
+          "component": "Integral (ambiental, social y territorial)",
+          "normName": "Licencia Ambiental",
+          "requiredData": "Resolución de Licencia Ambiental y obligaciones del Plan de Manejo Ambiental (PMA).",
+          "year": "Vigente",
+          "obligations": "Presentar Estudio de Impacto Ambiental (EIA), consulta previa si aplica, y demás anexos técnicos.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Define / orienta",
+              "childNormName": "Resolución 256 de 2018"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Biótica / Compensaciones",
+          "normName": "Manual de Compensaciones del Componente Biótico (Res. 256/2018)",
+          "requiredData": "Cálculo de factores, áreas equivalentes, trazabilidad espacial.",
+          "year": "2018",
+          "obligations": "Diseñar y ejecutar compensaciones por pérdida de biodiversidad (cuánto, dónde y cómo).",
+          "type": "Guía/Norma técnica (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Complementa / estandariza",
+              "childNormName": "Resolucion 1402 de 2018"
+            }
+          ],
+          "issuer": "MADS/ANLA",
+          "component": "Metodológica",
+          "normName": "Metodología General para Estudios Ambientales (MGEPEA 2018)",
+          "requiredData": "Estructuras de contenido, matrices, anexos.",
+          "year": "2018",
+          "obligations": "Asegurar coherencia entre línea base, impactos, PMA y seguimiento reportado.",
+          "type": "Guía técnica"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Exige / controla",
+              "childNormName": "Resolución 627 de 2006"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Abiótica / Ruido",
+          "normName": "Norma de Ruido (Res. 627/2006)",
+          "requiredData": "Muestreos dB(A), mapas de ruido, horarios.",
+          "year": "2006",
+          "obligations": "Cumplir estándares de ruido ambiental; incluir monitoreos y planes de manejo de ruido.",
+          "type": "Normativa técnica (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Integral / Biodiversidad",
+              "childNormName": "Resolución 1466 de 2014"
+            }
+          ],
+          "issuer": "ANLA / CAR (según jurisdicción)",
+          "component": "Biótico/flora/fauna",
+          "normName": "Permiso de recolección de especímenes silvestres",
+          "requiredData": "Resolución que otorga el permiso de recolección con condiciones y obligaciones.",
+          "year": "Vigente",
+          "obligations": "Presentar solicitud con justificación técnica, plan de trabajo, metodología de muestreo, listado de especies y sitios de recolección.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Obliga / registra",
+              "childNormName": "Resolución 1362 de 2007"
+            }
+          ],
+          "issuer": "MADS/IDEAM",
+          "component": "Residuos Peligrosos",
+          "normName": "Registro de Generadores de RESPEL (Res. 1362/2007)",
+          "requiredData": "Plataforma de registro, cantidades, gestores autorizados.",
+          "year": "2007",
+          "obligations": "Registrar generación de RESPEL y reportar anualmente.",
+          "type": "Instrumento administrativo (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Obliga / verifica",
+              "childNormName": "Resolución 1909 de 2017"
+            }
+          ],
+          "issuer": "MADS",
+          "component": "Biótica / Flora/Fauna",
+          "normName": "Salvoconducto Único Nacional en Línea (SUNL)",
+          "requiredData": "Registros de remoción, coordenadas, volúmenes, placas.",
+          "year": "2017",
+          "obligations": "Gestionar salvoconductos en línea para movilización de especímenes/productos forestales.",
+          "type": "Herramienta/permiso (resolución)"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Biótico / ecosistemas",
+              "childNormName": "Ley 2ª de 1959"
+            }
+          ],
+          "issuer": "ANLA / CAR",
+          "component": "Biótico / ecosistemas",
+          "normName": "Sustracción de reserva forestal",
+          "requiredData": "Trámite y requisitos específicos.",
+          "year": "Vigente",
+          "obligations": "Trámite y requisitos específicos para aprovechamiento, salvoconductos y compensaciones en áreas de sustracción de reserva forestal.",
+          "type": "Procedimiento"
+        },
+        {
+          "childNorms": [
+            {
+              "relationType": "Restringe / prohíbe",
+              "childNormName": "Resolución 0213 de 1977"
+            }
+          ],
+          "issuer": "INDERENA/MADS",
+          "component": "Biótica / Flora/fauna",
+          "normName": "Veda Nacional de Flora (INDERENA Res. 0213/1977)",
+          "requiredData": "Listados de especies, inventarios, actas de rescate.",
+          "year": "1977",
+          "obligations": "Prohibir intervención de especies vedadas salvo autorizaciones; reportar rescates/compensaciones.",
+          "type": "Listas de protección (resolución)"
+        }
+      ]
+    }
+  ],
+  "meta": {
+    "counters": {},
+    "t_first": 4,
+    "t_consumed": 22
+  }
+}

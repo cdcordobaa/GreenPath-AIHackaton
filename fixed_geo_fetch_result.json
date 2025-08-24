@@ -1,0 +1,154 @@
+{
+  "ok": true,
+  "count": 21,
+  "rows": [
+    {
+      "recurso1": "Suelos",
+      "recurso": "Suelos",
+      "cantidad": 505,
+      "tipo": "CapacidadUsoTierra",
+      "categoria": "SOILS"
+    },
+    {
+      "recurso1": "Cuencas Hidrográficas",
+      "recurso": "Cuencas Hidrográficas",
+      "cantidad": 19,
+      "tipo": "CuencaHidrografica",
+      "categoria": "HYDROLOGY"
+    },
+    {
+      "recurso1": "Ocupación de Cauce",
+      "recurso": "Ocupación de Cauce",
+      "cantidad": 2,
+      "tipo": "ocupacioncauce",
+      "categoria": "HYDROLOGY"
+    },
+    {
+      "recurso1": "Agua Superficial",
+      "recurso": "Agua Superficial",
+      "cantidad": 32,
+      "tipo": "puntomuestreoaguasuper",
+      "categoria": "HYDROLOGY"
+    },
+    {
+      "recurso1": "Uso Recursos Hídricos",
+      "recurso": "Uso Recursos Hídricos",
+      "cantidad": 174,
+      "tipo": "usosyusuariosrecursohidrico",
+      "categoria": "HYDROLOGY"
+    },
+    {
+      "recurso1": "Hidrogeología",
+      "recurso": "Hidrogeología",
+      "cantidad": 208,
+      "tipo": "puntohidrogeologico",
+      "categoria": "HYDROGEOLOGY"
+    },
+    {
+      "recurso1": "Agua Subterránea",
+      "recurso": "Agua Subterránea",
+      "cantidad": 21,
+      "tipo": "puntomuestreoaguasubter",
+      "categoria": "HYDROGEOLOGY"
+    },
+    {
+      "recurso1": "Aprovechamiento Forestal (Polígono)",
+      "recurso": "Aprovechamiento Forestal (Polígono)",
+      "cantidad": 1000,
+      "tipo": "aprovechaforestalpg",
+      "categoria": "BIOTIC"
+    },
+    {
+      "recurso1": "Aprovechamiento Forestal (Punto)",
+      "recurso": "Aprovechamiento Forestal (Punto)",
+      "cantidad": 1000,
+      "tipo": "aprovechaforestalpt",
+      "categoria": "BIOTIC"
+    },
+    {
+      "recurso1": "Cobertura de Tierra",
+      "recurso": "Cobertura de Tierra",
+      "cantidad": 1000,
+      "tipo": "coberturatierra",
+      "categoria": "BIOTIC"
+    },
+    {
+      "recurso1": "Ecosistemas",
+      "recurso": "Ecosistemas",
+      "cantidad": 1000,
+      "tipo": "ecosistema",
+      "categoria": "BIOTIC"
+    },
+    {
+      "recurso1": "Fauna",
+      "recurso": "Fauna",
+      "cantidad": 253,
+      "tipo": "puntomuestreofauna",
+      "categoria": "BIOTIC"
+    },
+    {
+      "recurso1": "Flora",
+      "recurso": "Flora",
+      "cantidad": 501,
+      "tipo": "puntomuestreoflora",
+      "categoria": "BIOTIC"
+    },
+    {
+      "recurso1": "Transectos Fauna",
+      "recurso": "Transectos Fauna",
+      "cantidad": 187,
+      "tipo": "transectomuestreofauna",
+      "categoria": "BIOTIC"
+    },
+    {
+      "recurso1": "amenazaotras",
+      "recurso": "amenazaotras",
+      "cantidad": 1000,
+      "tipo": "amenazaotras",
+      "categoria": "RISK_MANAGEMENT"
+    },
+    {
+      "recurso1": "elementosexpuestosln",
+      "recurso": "elementosexpuestosln",
+      "cantidad": 1000,
+      "tipo": "elementosexpuestosln",
+      "categoria": "RISK_MANAGEMENT"
+    },
+    {
+      "recurso1": "elementosexpuestospt",
+      "recurso": "elementosexpuestospt",
+      "cantidad": 1000,
+      "tipo": "elementosexpuestospt",
+      "categoria": "RISK_MANAGEMENT"
+    },
+    {
+      "recurso1": "suscept_incendios",
+      "recurso": "suscept_incendios",
+      "cantidad": 1000,
+      "tipo": "suscept_incendios",
+      "categoria": "RISK_MANAGEMENT"
+    },
+    {
+      "recurso1": "suscept_inundaciones",
+      "recurso": "suscept_inundaciones",
+      "cantidad": 280,
+      "tipo": "suscept_inundaciones",
+      "categoria": "RISK_MANAGEMENT"
+    },
+    {
+      "recurso1": "vulnerabilidad_pt",
+      "recurso": "vulnerabilidad_pt",
+      "cantidad": 1000,
+      "tipo": "vulnerabilidad_pt",
+      "categoria": "RISK_MANAGEMENT"
+    },
+    {
+      "recurso1": "Compensación Biodiversidad",
+      "recurso": "Compensación Biodiversidad",
+      "cantidad": 37,
+      "tipo": "compensacionbiodiversidad",
+      "categoria": "COMPENSATION"
+    }
+  ],
+  "project_id": "test_project"
+}

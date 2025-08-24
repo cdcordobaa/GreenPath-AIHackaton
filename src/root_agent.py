@@ -9,18 +9,20 @@ from .eia_adk.agents.summarizer_agent import agent as summarizer_agent
 from .eia_adk.agents.legal_scope_agent import agent as legal_scope_agent
 from .eia_adk.agents.legal_agent import agent as legal_agent
 from .eia_adk.agents.report_agent import agent as report_agent
+from .eia_adk.agents.enhanced_report_agent import agent as enhanced_report_agent
 from .eia_adk.agents.tools import run_pipeline_tool
 
 
 # Deterministic workflow runner that chains all specialists in order
 workflow_agent = SequentialAgent(
     name='workflow',
-    description='EIA pipeline: ingest → geo → synthesis → summarizer → legal_scope → legal → report',
+    description='EIA pipeline: ingest → geo → geo2neo → geo_kb → enhanced_report',
     sub_agents=[
         ingest_agent,
         geo_agent,
         geo2neo_agent,
         geo_kb_agent,
+        enhanced_report_agent,  # Final step: comprehensive report generation
         # synthesis_agent,
         # summarizer_agent,
         # legal_scope_agent,

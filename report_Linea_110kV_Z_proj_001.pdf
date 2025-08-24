@@ -1,0 +1,175 @@
+# Reporte de Análisis EIA - Linea_110kV_Z
+
+**Proyecto ID:** proj_001
+**Fecha de Generación:** 2025-08-24 09:45:19
+
+---
+
+## 📋 Resumen Ejecutivo
+
+Este reporte presenta el análisis de impacto ambiental para el proyecto **Linea_110kV_Z**. 
+Se identificaron **21 recursos geoespaciales** afectados y se encontraron **9 documentos legales** relevantes.
+
+## 🏗️ Información del Proyecto
+
+- **Nombre:** Linea_110kV_Z
+- **ID:** proj_001
+
+## 🌍 Análisis Geoespacial
+
+**Total de recursos identificados:** 21
+
+### Recursos por Categoría
+
+#### SOILS
+
+- **Suelos**: 505 elementos (Tipo: Suelos)
+
+#### HYDROLOGY
+
+- **Cuencas Hidrográficas**: 19 elementos (Tipo: Hidrología)
+- **Ocupación de Cauce**: 2 elementos (Tipo: Hidrología)
+- **Agua Superficial**: 32 elementos (Tipo: Hidrología)
+- **Uso Recursos Hídricos**: 174 elementos (Tipo: Hidrología)
+
+#### HIDROGEOLOGY
+
+- **Hidrogeología**: 208 elementos (Tipo: Hidrogeología)
+- **Agua Subterránea**: 21 elementos (Tipo: Hidrogeología)
+
+#### BIOTIC
+
+- **Aprovechamiento Forestal (Polígono)**: 1000 elementos (Tipo: Biótico)
+- **Aprovechamiento Forestal (Punto)**: 1000 elementos (Tipo: Biótico)
+- **Cobertura de Tierra**: 1000 elementos (Tipo: Biótico)
+- **Ecosistemas**: 1000 elementos (Tipo: Biótico)
+- **Fauna**: 253 elementos (Tipo: Biótico)
+- **Flora**: 501 elementos (Tipo: Biótico)
+- **Transectos Fauna**: 187 elementos (Tipo: Biótico)
+
+#### RISK_MANAGEMENT
+
+- **amenazaotras**: 1000 elementos (Tipo: Gestión de Riesgo)
+- **elementosexpuestosln**: 1000 elementos (Tipo: Gestión de Riesgo)
+- **elementosexpuestospt**: 1000 elementos (Tipo: Gestión de Riesgo)
+- **suscept_incendios**: 1000 elementos (Tipo: Gestión de Riesgo)
+- **suscept_inundaciones**: 280 elementos (Tipo: Gestión de Riesgo)
+- **vulnerabilidad_pt**: 1000 elementos (Tipo: Gestión de Riesgo)
+
+#### COMPENSATION
+
+- **Compensación Biodiversidad**: 37 elementos (Tipo: Compensación)
+
+## ⚖️ Marco Legal Aplicable
+
+### Mapeo de Recursos a Marco Legal
+
+## 📚 Documentos Legales Relevantes
+
+**Total de documentos encontrados:** 9
+
+### Documentos Identificados
+
+#### 1. None
+**URL:** https://old.parquesnacionales.gov.co/portal/es/sistema-nacional-de-areas-protegidas-sinap/compensaciones-ambientales-e-inversion-forzosa-del-1/
+**Contenido:** 
+
+[Content truncated for efficiency...]...
+
+#### 2. None
+**URL:** https://www.anla.gov.co/01_anla/proyectos/nuevo-licenciamiento-ambiental/elaboracion-ica-y-control-y-seguimiento
+**Contenido:** A través de los Informes de Cumplimiento Ambiental los titulares de las licencias ambientales o beneficiarios de planes de manejo ambiental presentan el cumplimiento y efectividad de los compromisos a...
+
+#### 3. None
+**URL:** https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=18718
+**Contenido:** 
+
+[Content truncated for efficiency...]...
+
+#### 4. None
+**URL:** https://www.anla.gov.co/documentos/normativa/terminos_referencia/tdr_eia_sist_trans.pdf
+**Contenido:** MINISTERIO DE AMBIENTE Y DESARROLLO SOSTENIBLE 
+ 
+AUTORIDAD NACIONAL DE LICENCIAS AMBIENTALES 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+TÉRMINOS DE REFERENCIA  
+PARA LA ELABORACIÓN DEL ESTUDIO DE IMPACTO AMBIENTAL –...
+
+#### 5. None
+**URL:** https://www.anla.gov.co/documentos/normativa/terminos_referencia/tdr_eia_sist_trans.pdf
+**Contenido:** MINISTERIO DE AMBIENTE Y DESARROLLO SOSTENIBLE 
+ 
+AUTORIDAD NACIONAL DE LICENCIAS AMBIENTALES 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+TÉRMINOS DE REFERENCIA  
+PARA LA ELABORACIÓN DEL ESTUDIO DE IMPACTO AMBIENTAL –...
+
+#### 6. None
+**URL:** https://gestornormativo.creg.gov.co/gestor/entorno/docs/resolucion_minminas_91159_2013.htm
+**Contenido:** RESOLUCIÓN 91159 DE 2013
+(diciembre 26)
+Diario Oficial No. 49.016 de 27 de diciembre de 2013
+MINISTERIO DE MINAS Y ENERGÍA
+Por la cual se modifica la Resolución 180423 de 2012 y se subroga la Resoluci...
+
+#### 7. None
+**URL:** https://old.parquesnacionales.gov.co/portal/es/sistema-nacional-de-areas-protegidas-sinap/compensaciones-ambientales-e-inversion-forzosa-del-1/
+**Contenido:** 
+
+[Content truncated for efficiency...]...
+
+#### 8. None
+**URL:** https://old.parquesnacionales.gov.co/portal/es/sistema-nacional-de-areas-protegidas-sinap/compensaciones-ambientales-e-inversion-forzosa-del-1/
+**Contenido:** 
+
+[Content truncated for efficiency...]...
+
+#### 9. None
+**URL:** https://www.anla.gov.co/01_anla/permiso-y-autorizacion-aprovechamiento-florestal-bosques-naturales
+**Contenido:** 
+
+[Content truncated for efficiency...]...
+
+## 📋 Requerimientos y Recomendaciones
+
+### Requerimientos Identificados
+
+- Revisar documento: None
+- Revisar documento: None
+- Revisar documento: None
+
+### Próximos Pasos Recomendados
+
+1. **Análisis Legal Detallado:** Revisar en profundidad los documentos legales identificados
+2. **Consulta con Autoridades:** Contactar las entidades reguladoras pertinentes
+3. **Evaluación de Impactos:** Realizar estudios específicos para cada categoría de recurso
+4. **Preparación de Documentación:** Compilar la documentación necesaria para permisos
+5. **Seguimiento Regulatorio:** Establecer cronograma de cumplimiento normativo
+
+---
+
+*Reporte generado automáticamente por EIA-ADK el 2025-08-24 09:45:19*

@@ -1,0 +1,118 @@
+{
+  "original_tokens": 5850000,
+  "enhanced_results": {
+    "fast": {
+      "tokens": 11871,
+      "docs": 6,
+      "keywords_used": 21,
+      "truncated": 6,
+      "processing_time": 0.0008308887481689453
+    },
+    "balanced": {
+      "tokens": 49989,
+      "docs": 14,
+      "keywords_used": 21,
+      "truncated": 14,
+      "processing_time": 0.0032770633697509766
+    },
+    "comprehensive": {
+      "tokens": 99671,
+      "docs": 16,
+      "keywords_used": 21,
+      "truncated": 16,
+      "processing_time": 0.01653885841369629
+    }
+  },
+  "final_state_structure": {
+    "project": {
+      "project_id": "electrical_line_project",
+      "project_name": "110kV_Transmission_Line_Project"
+    },
+    "config": {
+      "layers": [
+        "soils",
+        "biotic",
+        "hydrology",
+        "geology",
+        "protected_areas"
+      ]
+    },
+    "geo": {
+      "structured_summary": {
+        "count": 485,
+        "rows": [
+          {
+            "cantidad": 220,
+            "categoria": "SOILS",
+            "tipo": "Suelos"
+          },
+          {
+            "cantidad": 165,
+            "categoria": "BIOTIC",
+            "tipo": "Fauna"
+          },
+          {
+            "cantidad": 100,
+            "categoria": "HYDROLOGY",
+            "tipo": "Hidrología"
+          },
+          {
+            "cantidad": 85,
+            "categoria": "BIOTIC",
+            "tipo": "Flora"
+          },
+          {
+            "cantidad": 65,
+            "categoria": "GEOLOGY",
+            "tipo": "Geología"
+          },
+          {
+            "cantidad": 35,
+            "categoria": "PROTECTED",
+            "tipo": "Áreas Protegidas"
+          }
+        ]
+      }
+    },
+    "legal": {
+      "geo2neo": {
+        "alias_input": [
+          "Biótico",
+          "Compensación Ambiental",
+          "Gestión de Riesgo",
+          "Hidrogeología",
+          "Hidrología",
+          "Suelos",
+          "Fauna Silvestre",
+          "Flora Nativa",
+          "Licencia Ambiental",
+          "Evaluación de Impacto",
+          "Biodiversidad",
+          "Ecosistemas",
+          "Áreas Protegidas"
+        ],
+        "alias_mapping": {
+          "ok": true,
+          "results": [
+            {
+              "category": "Environmental Impact Assessment",
+              "instrumentsAndPermits": [
+                {
+                  "instrumentName": "Licencia Ambiental",
+                  "modalities": [
+                    {
+                      "affectedResource": "Biodiversidad"
+                    },
+                    {
+                      "affectedResource": "Recurso Hídrico"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

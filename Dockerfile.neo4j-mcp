@@ -1,0 +1,29 @@
+# Dockerfile for mcp-geo2neo server
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY mcp-geo2neo/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install FastAPI and uvicorn for HTTP server  
+RUN pip install --no-cache-dir fastapi uvicorn
+
+# Copy the application
+COPY mcp-geo2neo/ .
+
+# Create a non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 8766
+
+# Run the HTTP server
+CMD ["python", "run_http.py"]

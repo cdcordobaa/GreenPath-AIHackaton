@@ -1,0 +1,101 @@
+version: '3.8'
+
+services:
+  # Geo MCP Server
+  geo-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.geo-mcp
+    ports:
+      - "8765:8765"
+    environment:
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+    volumes:
+      - ./geo-fetch-mcp/outputs:/app/outputs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/tools/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Neo4j MCP Server
+  neo4j-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.neo4j-mcp
+    ports:
+      - "8766:8766"
+    environment:
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - NEO4J_DATABASE=${NEO4J_DATABASE}
+    restart: unless-stopped
+    # Using Neo4j Aura Cloud, so no local dependency needed
+
+  # Neo4j Database (optional - using Neo4j Aura Cloud instead)
+  # Commented out since we're using Neo4j Aura
+  # neo4j:
+  #   image: neo4j:5.20
+  #   ports:
+  #     - "7474:7474"
+  #     - "7687:7687"
+  #   environment:
+  #     - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+  #     - NEO4J_PLUGINS=["apoc"]
+  #   volumes:
+  #     - neo4j_data:/data
+  #   restart: unless-stopped
+
+  # Main EIA Agent
+  eia-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    ports:
+      - "8000:8000"
+    environment:
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - NEO4J_URI=${NEO4J_URI}
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - GEO_MCP_URL=http://geo-mcp:8765
+      - NEO4J_MCP_URL=http://neo4j-mcp:8766
+    volumes:
+      - ./data:/app/data
+      - ./out:/app/out
+    restart: unless-stopped
+    depends_on:
+      - geo-mcp
+      - neo4j-mcp
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    restart: unless-stopped
+    depends_on:
+      - eia-agent
+      - geo-mcp
+      - neo4j-mcp
+
+# volumes:
+  # neo4j_data:
+  # neo4j_logs:
+  # neo4j_import:
+  # neo4j_plugins:
+
+networks:
+  default:
+    name: eia-network

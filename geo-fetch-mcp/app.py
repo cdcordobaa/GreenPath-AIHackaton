@@ -1,4 +1,5 @@
 import os
+import sys
 from typing import Optional, Dict, Any
 import orjson
 
@@ -490,7 +491,7 @@ def get_structured_resource_summary(project_id: str) -> Dict[str, Any]:
                         "recurso1": resource_mapping.get(resource_type, resource_type),
                         "recurso": resource_mapping.get(resource_type, resource_type),
                         "cantidad": count,
-                        "tipo": tipo_mapping.get(category, category),
+                        "tipo": resource_type,  # Use the actual table name for Neo4j alias matching
                         "categoria": category.upper(),
                     })
         
@@ -536,6 +537,26 @@ def search_scraped_pages(url_contains: Optional[str] = None, text_contains: Opti
         return {"count": len(rows), "rows": rows, "error": err}
     except Exception as exc:
         return {"count": 0, "rows": [], "error": str(exc)}
+
+# Add embedding capabilities
+try:
+    from embedding_tools import add_embedding_tools
+    add_embedding_tools(mcp, supabase)
+    print("✅ Mock embedding tools added to MCP server", file=sys.stderr)
+except ImportError as e:
+    print(f"⚠️ Mock embedding tools not available: {e}", file=sys.stderr)
+except Exception as e:
+    print(f"❌ Failed to add mock embedding tools: {e}", file=sys.stderr)
+
+# Add real embedding capabilities
+try:
+    from enhanced_embedding_tools import add_real_embedding_tools
+    add_real_embedding_tools(mcp, supabase)
+    print("✅ Real embedding tools added to MCP server", file=sys.stderr)
+except ImportError as e:
+    print(f"⚠️ Real embedding tools not available: {e}", file=sys.stderr)
+except Exception as e:
+    print(f"❌ Failed to add real embedding tools: {e}", file=sys.stderr)
 
 if __name__ == "__main__":
     mcp.run_stdio()

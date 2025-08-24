@@ -121,6 +121,235 @@ def assemble_report(state_json: Dict[str, Any], out_path: str = "out/report.md")
     return result
 
 
+def enhanced_assemble_report(state_json: Dict[str, Any], out_path: str = "out/enhanced_report.md") -> Dict[str, Any]:
+    """Generate a comprehensive EIA analysis report from all workflow results."""
+    from datetime import datetime
+    import os
+    
+    # Extract data from state
+    project = state_json.get("project", {})
+    geo = state_json.get("geo", {})
+    legal = state_json.get("legal", {})
+    
+    # Project info
+    project_name = project.get("project_name", "Proyecto Sin Nombre")
+    project_id = project.get("project_id", "N/A")
+    
+    # Geo analysis results
+    structured_summary = geo.get("structured_summary", {})
+    geo_rows = structured_summary.get("rows", [])
+    geo_count = structured_summary.get("count", 0)
+    
+    # Legal analysis results
+    geo2neo = legal.get("geo2neo", {})
+    alias_mapping = geo2neo.get("alias_mapping", {})
+    kb_results = legal.get("kb", {}).get("scraped_pages", {})
+    kb_rows = kb_results.get("rows", [])
+    kb_count = kb_results.get("count", 0)
+    
+    # Generate report content
+    report_content = []
+    
+    # Header
+    report_content.extend([
+        f"# Reporte de Análisis EIA - {project_name}",
+        "",
+        f"**Proyecto ID:** {project_id}",
+        f"**Fecha de Generación:** {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        "",
+        "---",
+        ""
+    ])
+    
+    # Executive Summary
+    report_content.extend([
+        "## 📋 Resumen Ejecutivo",
+        "",
+        f"Este reporte presenta el análisis de impacto ambiental para el proyecto **{project_name}**. ",
+        f"Se identificaron **{geo_count} recursos geoespaciales** afectados y se encontraron **{kb_count} documentos legales** relevantes.",
+        "",
+    ])
+    
+    # Project Details
+    report_content.extend([
+        "## 🏗️ Información del Proyecto",
+        "",
+        f"- **Nombre:** {project_name}",
+        f"- **ID:** {project_id}",
+    ])
+    
+    if project.get("project_shapefile_path"):
+        report_content.append(f"- **Archivo Geoespacial:** {project.get('project_shapefile_path')}")
+    
+    config_layers = project.get("config", {}).get("layers", [])
+    if config_layers:
+        report_content.extend([
+            "- **Capas Analizadas:**",
+            *[f"  - {layer}" for layer in config_layers]
+        ])
+    
+    report_content.append("")
+    
+    # Geospatial Analysis Results
+    report_content.extend([
+        "## 🌍 Análisis Geoespacial",
+        "",
+        f"**Total de recursos identificados:** {geo_count}",
+        ""
+    ])
+    
+    if geo_rows:
+        # Group by category
+        categories = {}
+        for row in geo_rows:
+            cat = row.get("categoria", "Sin Categoría")
+            if cat not in categories:
+                categories[cat] = []
+            categories[cat].append(row)
+        
+        report_content.append("### Recursos por Categoría")
+        report_content.append("")
+        
+        for category, resources in categories.items():
+            report_content.extend([
+                f"#### {category}",
+                ""
+            ])
+            
+            for resource in resources:
+                recurso = resource.get("recurso", "N/A")
+                cantidad = resource.get("cantidad", 0)
+                tipo = resource.get("tipo", "N/A")
+                report_content.append(f"- **{recurso}**: {cantidad} elementos (Tipo: {tipo})")
+            
+            report_content.append("")
+    
+    # Legal Framework Analysis
+    report_content.extend([
+        "## ⚖️ Marco Legal Aplicable",
+        ""
+    ])
+    
+    if alias_mapping:
+        report_content.extend([
+            "### Mapeo de Recursos a Marco Legal",
+            ""
+        ])
+        
+        for category, mapping_data in alias_mapping.items():
+            if isinstance(mapping_data, dict) and mapping_data.get("results"):
+                results = mapping_data["results"]
+                report_content.extend([
+                    f"#### {category}",
+                    ""
+                ])
+                
+                for result in results[:5]:  # Show first 5 results
+                    instruments = result.get("instrumentsAndPermits", [])
+                    if instruments:
+                        report_content.append(f"**Categoría:** {result.get('category', 'N/A')}")
+                        report_content.append("**Instrumentos y Permisos:**")
+                        for instrument in instruments[:3]:  # Show first 3 instruments
+                            name = instrument.get("name", "N/A")
+                            entity = instrument.get("entity", "N/A")
+                            report_content.append(f"- {name} ({entity})")
+                        report_content.append("")
+    else:
+        report_content.extend([
+            "No se encontraron mapeos específicos en el marco legal.",
+            ""
+        ])
+    
+    # Knowledge Base Results
+    report_content.extend([
+        "## 📚 Documentos Legales Relevantes",
+        "",
+        f"**Total de documentos encontrados:** {kb_count}",
+        ""
+    ])
+    
+    if kb_rows:
+        report_content.extend([
+            "### Documentos Identificados",
+            ""
+        ])
+        
+        for i, doc in enumerate(kb_rows[:10], 1):  # Show first 10 documents
+            title = doc.get("title", "Sin Título")
+            url = doc.get("url", "#")
+            content_preview = doc.get("content_md", "")[:200] + "..." if doc.get("content_md") else "Sin contenido disponible"
+            
+            report_content.extend([
+                f"#### {i}. {title}",
+                f"**URL:** {url}",
+                f"**Contenido:** {content_preview}",
+                ""
+            ])
+    else:
+        report_content.extend([
+            "No se encontraron documentos legales específicos en la base de conocimiento.",
+            ""
+        ])
+    
+    # Requirements and Recommendations
+    report_content.extend([
+        "## 📋 Requerimientos y Recomendaciones",
+        "",
+        "### Requerimientos Identificados",
+        ""
+    ])
+    
+    # Extract requirements from legal documents
+    requirements_found = []
+    for doc in kb_rows[:5]:  # Check first 5 documents
+        content = doc.get("content_md", "").lower()
+        if any(keyword in content for keyword in ["permiso", "licencia", "autorización", "registro"]):
+            requirements_found.append(f"- Revisar documento: {doc.get('title', 'Sin título')}")
+    
+    if requirements_found:
+        report_content.extend(requirements_found)
+    else:
+        report_content.append("- Realizar análisis detallado de requerimientos legales específicos")
+    
+    report_content.extend([
+        "",
+        "### Próximos Pasos Recomendados",
+        "",
+        "1. **Análisis Legal Detallado:** Revisar en profundidad los documentos legales identificados",
+        "2. **Consulta con Autoridades:** Contactar las entidades reguladoras pertinentes",
+        "3. **Evaluación de Impactos:** Realizar estudios específicos para cada categoría de recurso",
+        "4. **Preparación de Documentación:** Compilar la documentación necesaria para permisos",
+        "5. **Seguimiento Regulatorio:** Establecer cronograma de cumplimiento normativo",
+        "",
+        "---",
+        "",
+        f"*Reporte generado automáticamente por EIA-ADK el {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*"
+    ])
+    
+    # Write report to file
+    os.makedirs(os.path.dirname(out_path) if os.path.dirname(out_path) else "out", exist_ok=True)
+    
+    with open(out_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(report_content))
+    
+    # Update state
+    state = _to_state(state_json)
+    if not hasattr(state, 'artifacts') or state.artifacts is None:
+        state.artifacts = []
+    
+    state.artifacts.append({
+        "type": "enhanced_report_md", 
+        "uri": out_path,
+        "description": f"Reporte EIA completo para {project_name}"
+    })
+    
+    result = _from_state(state)
+    result["report_uri"] = out_path
+    result["report_type"] = "enhanced_eia_analysis"
+    
+    return result
+
+
 def run_geospatial_with_config(state_json: Dict[str, Any], predicate: str = "intersects", buffer_m: Optional[float] = None) -> Dict[str, Any]:
     """Runs geospatial analysis using layers configured in project.config_layers."""
     target_layers = []
@@ -440,7 +669,8 @@ def geo_kb_search_from_state(
     per_keyword_limit: int = 2,  # Reduced from 5 to 2
     max_keywords: int = 12,
     max_chars_per_doc: int = 15000,  # Truncate docs to 15K chars (~3.7K tokens)
-    skip_docs_larger_than: int = 500000  # Skip docs larger than 500K chars
+    skip_docs_larger_than: int = 500000,  # Skip docs larger than 500K chars
+    optimization_mode: str = "balanced"  # New: "fast", "balanced", "comprehensive", "adaptive"
 ) -> Dict[str, Any]:
     """Derive search keywords from state and query geo-fetch-mcp.scraped_pages for matching docs.
 

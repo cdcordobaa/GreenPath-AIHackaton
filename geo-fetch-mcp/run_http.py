@@ -37,6 +37,8 @@ def http_hydrology(project_id: str, limit: int = 10, filters: Optional[Dict[str,
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(api, host="127.0.0.1", port=8765)
+    import os
+    port = int(os.environ.get("PORT", 8765))
+    uvicorn.run(api, host="0.0.0.0", port=port)
 
 
