@@ -131,6 +131,45 @@ def capacidad_uso_tierra_query(limit: int = 10, eq: Optional[Dict[str, Any]] = N
     return {"rows": rows, "count": len(rows), "error": err}
 
 
+@mcp.tool()
+def hydrology(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    """Hydrology compendium: combines hydrology-related datasets.
+
+    - capacidad_uso_tierra_query (optional filters)
+    - intersections for hydrography and soils layers (limited)
+    """
+    # Soils capacity/usage table
+    capacidad = capacidad_uso_tierra_query(limit=limit, eq=filters)
+
+    # Intersections from curated tables
+    hydro_recs = fetch_layer_records(project_id=project_id, layer="hydrography")
+    soils_recs = fetch_layer_records(project_id=project_id, layer="soils")
+
+    hydro_out = {
+        "layer": "hydrography",
+        "count": len(hydro_recs),
+        "records": hydro_recs[: max(0, int(limit))],
+    }
+    soils_out = {
+        "layer": "soils",
+        "count": len(soils_recs),
+        "records": soils_recs[: max(0, int(limit))],
+    }
+
+    return {
+        "summary": {
+            "capacidad_uso_tierra_count": capacidad.get("count", 0),
+            "hydrography_count": hydro_out["count"],
+            "soils_count": soils_out["count"],
+        },
+        "capacidad_uso_tierra": capacidad,
+        "intersections": {
+            "hydrography": hydro_out,
+            "soils": soils_out,
+        },
+    }
+
+
 if __name__ == "__main__":
     mcp.run_stdio()
 

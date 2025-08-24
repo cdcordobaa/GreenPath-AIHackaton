@@ -3,6 +3,10 @@ from typing import List
 from supabase import create_client, Client
 from dotenv import load_dotenv
 from models import LayerRecord
+try:
+    from postgrest.exceptions import APIError as PostgrestAPIError  # type: ignore
+except Exception:  # pragma: no cover
+    PostgrestAPIError = Exception  # fallback
 
 
 load_dotenv()
@@ -47,8 +51,17 @@ def fetch_layer_records(project_id: str, layer: str) -> List[LayerRecord]:
         raise ValueError(f"Unknown layer: {layer}")
 
     supa = get_client()
-    resp = supa.table(table).select(",".join(BASIC_COLUMNS)).eq("project_id", project_id).execute()
-    rows = resp.data or []
+    try:
+        resp = (
+            supa.table(table)
+            .select(",".join(BASIC_COLUMNS))
+            .eq("project_id", project_id)
+            .execute()
+        )
+        rows = resp.data or []
+    except PostgrestAPIError:
+        # Table missing or not exposed; return empty set rather than raising
+        rows = []
 
     out: List[LayerRecord] = []
     for r in rows:

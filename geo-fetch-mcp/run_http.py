@@ -30,6 +30,11 @@ def http_capacidad_uso_tierra_query(limit: int = 10, filters: Optional[Dict[str,
     return mcp_app.capacidad_uso_tierra_query(limit=limit, eq=filters)
 
 
+@api.post("/tools/hydrology")
+def http_hydrology(project_id: str, limit: int = 10, filters: Optional[Dict[str, Any]] = Body(default=None)):
+    return mcp_app.hydrology(project_id=project_id, limit=limit, filters=filters)
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(api, host="127.0.0.1", port=8765)
