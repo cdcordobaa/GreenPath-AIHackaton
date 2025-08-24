@@ -680,3 +680,95 @@ def mock_derive_impacts_from_compendia(state_json: Dict[str, Any]) -> Dict[str, 
     ]
     return current
 
+
+def mock_geo2neo_map(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    """Mock geo2neo mapping tool: saves mocked category/instruments/norms into state."""
+    current = deepcopy(state_json or {})
+    legal = current.setdefault("legal", {})
+    geo2neo: Dict[str, Any] = legal.setdefault("geo2neo", {})
+
+    payload = [
+        {
+            "keys": ["category", "instrumentsAndPermits", "associatedNorms"],
+            "length": 3,
+            "_fields": [
+                "Gestión Integral de Flora y Bosques",
+                [
+                    {
+                        "modalities": [
+                            {
+                                "subcategoryName": "Aprovechamiento Forestal Único (Desmonte)",
+                                "compensationCriteria": [
+                                    "*Compensación por Pérdida de Biodiversidad (Resolución 256 de 2018 - Manual de Compensaciones del Componente Biótico):* Obligación de restaurar ecológicamente o preservar un área de ecosistema ecológicamente equivalente a la afectada. El cálculo del área a compensar es mandatorio y se basa en fórmulas que consideran el tipo de ecosistema, su estado de amenaza, el área del impacto y un factor de compensación regional."
+                                ],
+                                "affectedResource": "Flora y Bosques",
+                                "managementCriteria": [
+                                    "Realización de un inventario forestal al 100% que identifique y georreferencie todos los individuos, especialmente los de especies vedadas o amenazadas.",
+                                    "Implementación de un Plan de Rescate, Ahuyentamiento y Reubicación de Fauna Silvestre, ejecutado por biólogos antes y durante las actividades.",
+                                    "Manejo de la biomasa vegetal mediante técnicas de chipeado y reincorporación al suelo para protegerlo de la erosión, prohibiendo explícitamente las quemas abiertas.",
+                                    "Implementación inmediata de medidas de control de erosión como revegetalización temporal con especies nativas, instalación de barreras de sedimento (trinchos) y manejo de aguas de escorrentía.",
+                                    "Elaboración e implementación del Plan de Gestión Integral de Residuos Peligrosos (RESPEL) para los residuos de la maquinaria (aceites, filtros, combustibles)."
+                                ],
+                            }
+                        ],
+                        "instrumentName": "Permiso de Aprovechamiento Forestal",
+                    }
+                ],
+                [
+                    {
+                        "childNorms": [
+                            {"relationType": "Reglamenta / condiciona", "childNormName": "Decreto 1791 de 1996"}
+                        ],
+                        "issuer": "MADS / CAR",
+                        "component": "Biótica / Forestal",
+                        "normName": "Aprovechamiento Forestal (Dec. 1791/1996) - ejecución",
+                        "requiredData": "Inventarios, planes, talas autorizadas, trazabilidad.",
+                        "year": "1996",
+                        "obligations": "Cumplir autorizaciones, salvoconductos y medidas de compensación; registrar movilización autorizada.",
+                        "type": "Instrumento ambiental (decreto)",
+                    }
+                ],
+                {
+                    "category": 0,
+                    "instrumentsAndPermits": 1,
+                    "associatedNorms": 2,
+                },
+            ],
+            "_fieldLookup": {
+                "category": 0,
+                "instrumentsAndPermits": 1,
+                "associatedNorms": 2,
+            },
+        }
+    ]
+
+    try:
+        first = payload[0]
+        fields = first.get("_fields", [])
+        lookup = first.get("_fieldLookup", {})
+        def _at(key: str):
+            try:
+                idx = lookup.get(key)
+                if isinstance(idx, int) and 0 <= idx < len(fields):
+                    return fields[idx]
+            except Exception:
+                pass
+            return None
+        category = _at("category")
+        instruments = _at("instrumentsAndPermits") or []
+        norms = _at("associatedNorms") or []
+        geo2neo["raw"] = first
+        geo2neo["normalized"] = {
+            "category": category,
+            "instrumentsAndPermits": instruments,
+            "associatedNorms": norms,
+        }
+        geo2neo["summary"] = {
+            "category": category,
+            "instrument_count": len(instruments) if isinstance(instruments, list) else 0,
+            "norm_count": len(norms) if isinstance(norms, list) else 0,
+        }
+    except Exception as exc:
+        geo2neo["error"] = f"mock parse failed: {exc}"
+    return current
+

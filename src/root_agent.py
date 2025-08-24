@@ -2,6 +2,7 @@ from google.adk.agents.llm_agent import Agent
 from google.adk.agents.sequential_agent import SequentialAgent
 from .eia_adk.agents.ingest_agent import agent as ingest_agent
 from .eia_adk.agents.geo_agent import agent as geo_agent
+from .eia_adk.agents.geo2neo_agent import agent as geo2neo_agent
 from .eia_adk.agents.synthesis_agent import agent as synthesis_agent
 from .eia_adk.agents.summarizer_agent import agent as summarizer_agent
 from .eia_adk.agents.legal_scope_agent import agent as legal_scope_agent
@@ -17,6 +18,7 @@ workflow_agent = SequentialAgent(
     sub_agents=[
         ingest_agent,
         geo_agent,
+        geo2neo_agent,
         # synthesis_agent,
         # summarizer_agent,
         # legal_scope_agent,

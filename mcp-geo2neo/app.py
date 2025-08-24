@@ -138,6 +138,11 @@ def get_instrumento_paths(input: InstrumentoInput) -> Dict[str, Any]:
     return {"count": len(items), "paths": items}
 
 
+@mcp.tool()
+def ping() -> Dict[str, Any]:
+    return {"ok": True}
+
+
 if __name__ == "__main__":
     mcp.run(host="0.0.0.0", port=8795)
 
