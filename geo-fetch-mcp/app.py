@@ -52,48 +52,41 @@ def _distinct_union_datasets(*datasets: Dict[str, Any]) -> Dict[str, Any]:
     return {"unique_rows": unique_rows, "unique_count": len(unique_rows)}
 
 
-@mcp.tool()
 def get_layer_records(input: GenericLayerQueryInput) -> LayerQueryOutput:
     recs = fetch_layer_records(project_id=input.project_id, layer=input.layer)
     return LayerQueryOutput(layer=input.layer, count=len(recs), records=recs)
 
 
-@mcp.tool()
 def get_soils(input: LayerQueryInput) -> LayerQueryOutput:
     layer = "soils"
     recs = fetch_layer_records(project_id=input.project_id, layer=layer)
     return LayerQueryOutput(layer=layer, count=len(recs), records=recs)
 
 
-@mcp.tool()
 def get_protected_areas(input: LayerQueryInput) -> LayerQueryOutput:
     layer = "protected_areas"
     recs = fetch_layer_records(project_id=input.project_id, layer=layer)
     return LayerQueryOutput(layer=layer, count=len(recs), records=recs)
 
 
-@mcp.tool()
 def get_biotic(input: LayerQueryInput) -> LayerQueryOutput:
     layer = "biotic"
     recs = fetch_layer_records(project_id=input.project_id, layer=layer)
     return LayerQueryOutput(layer=layer, count=len(recs), records=recs)
 
 
-@mcp.tool()
 def get_hydrography(input: LayerQueryInput) -> LayerQueryOutput:
     layer = "hydrography"
     recs = fetch_layer_records(project_id=input.project_id, layer=layer)
     return LayerQueryOutput(layer=layer, count=len(recs), records=recs)
 
 
-@mcp.tool()
 def get_ecosystems(input: LayerQueryInput) -> LayerQueryOutput:
     layer = "ecosystems"
     recs = fetch_layer_records(project_id=input.project_id, layer=layer)
     return LayerQueryOutput(layer=layer, count=len(recs), records=recs)
 
 
-@mcp.tool()
 def get_species(input: LayerQueryInput) -> LayerQueryOutput:
     layer = "species"
     recs = fetch_layer_records(project_id=input.project_id, layer=layer)
@@ -105,12 +98,10 @@ def ping() -> dict:
     return {"ok": True, "service": "geo-fetch-mcp", "version": "0.1.0"}
 
 
-@mcp.tool()
 def capacidad_uso_tierra_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("CapacidadUsoTierra")
 
 
-@mcp.tool()
 def get_soils_compendium(project_id: str) -> Dict[str, Any]:
     capacidad = capacidad_uso_tierra_query(project_id)
     return {
@@ -119,14 +110,12 @@ def get_soils_compendium(project_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
 def get_soils_unique(project_id: str) -> Dict[str, Any]:
     capacidad = capacidad_uso_tierra_query(project_id)
     uniq = _distinct_union_datasets(capacidad)
     return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
-@mcp.tool()
 def get_hydrology_compendium(project_id: str) -> Dict[str, Any]:
     cuencas = _supabase_fetch_all_rows("CuencaHidrografica")
     ocupacion = _supabase_fetch_all_rows("ocupacioncauce")
@@ -149,7 +138,6 @@ def get_hydrology_compendium(project_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
 def get_hydrology_unique(project_id: str) -> Dict[str, Any]:
     cuencas = _supabase_fetch_all_rows("CuencaHidrografica")
     ocupacion = _supabase_fetch_all_rows("ocupacioncauce")
@@ -159,27 +147,22 @@ def get_hydrology_unique(project_id: str) -> Dict[str, Any]:
     return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
-@mcp.tool()
 def cuenca_hidrografica_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("CuencaHidrografica")
 
 
-@mcp.tool()
 def ocupacion_cauce_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("ocupacioncauce")
 
 
-@mcp.tool()
 def punto_muestreo_agua_super_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("puntomuestreoaguasuper")
 
 
-@mcp.tool()
 def usosy_usuarios_recurso_hidrico_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("usosyusuariosrecursohidrico")
 
 
-@mcp.tool()
 def get_hydrogeology_compendium(project_id: str) -> Dict[str, Any]:
     punto_hi = _supabase_fetch_all_rows("PuntoHidrogeologico")
     puntohi_lower = _supabase_fetch_all_rows("puntohidrogeologico")
@@ -198,7 +181,6 @@ def get_hydrogeology_compendium(project_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
 def get_hydrogeology_unique(project_id: str) -> Dict[str, Any]:
     punto_hi = _supabase_fetch_all_rows("PuntoHidrogeologico")
     puntohi_lower = _supabase_fetch_all_rows("puntohidrogeologico")
@@ -207,22 +189,18 @@ def get_hydrogeology_unique(project_id: str) -> Dict[str, Any]:
     return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
-@mcp.tool()
 def punto_hidrogeologico_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("PuntoHidrogeologico")
 
 
-@mcp.tool()
 def puntohidrogeologico_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("puntohidrogeologico")
 
 
-@mcp.tool()
 def punto_muestreo_agua_subter_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("puntomuestreoaguasubter")
 
 
-@mcp.tool()
 def get_biotic_compendium(project_id: str) -> Dict[str, Any]:
     a_pg = _supabase_fetch_all_rows("aprovechaforestalpg")
     a_pt = _supabase_fetch_all_rows("aprovechaforestalpt")
@@ -253,7 +231,6 @@ def get_biotic_compendium(project_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
 def get_biotic_unique(project_id: str) -> Dict[str, Any]:
     a_pg = _supabase_fetch_all_rows("aprovechaforestalpg")
     a_pt = _supabase_fetch_all_rows("aprovechaforestalpt")
@@ -266,42 +243,34 @@ def get_biotic_unique(project_id: str) -> Dict[str, Any]:
     return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
-@mcp.tool()
 def aprovecha_forestal_pg_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("aprovechaforestalpg")
 
 
-@mcp.tool()
 def aprovecha_forestal_pt_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("aprovechaforestalpt")
 
 
-@mcp.tool()
 def cobertura_tierra_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("coberturatierra")
 
 
-@mcp.tool()
 def ecosistema_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("ecosistema")
 
 
-@mcp.tool()
 def punto_muestreo_fauna_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("puntomuestreofauna")
 
 
-@mcp.tool()
 def punto_muestreo_flora_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("puntomuestreoflora")
 
 
-@mcp.tool()
 def transecto_muestreo_fauna_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("transectomuestreofauna")
 
 
-@mcp.tool()
 def get_risk_management_compendium(project_id: str) -> Dict[str, Any]:
     am_otras = _supabase_fetch_all_rows("amenazaotras")
     el_ln = _supabase_fetch_all_rows("elementosexpuestosln")
@@ -357,7 +326,6 @@ def get_risk_management_compendium(project_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
 def get_risk_management_unique(project_id: str) -> Dict[str, Any]:
     am_otras = _supabase_fetch_all_rows("amenazaotras")
     el_ln = _supabase_fetch_all_rows("elementosexpuestosln")
@@ -381,82 +349,66 @@ def get_risk_management_unique(project_id: str) -> Dict[str, Any]:
     return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
 
 
-@mcp.tool()
 def amenaza_otras_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("amenazaotras")
 
 
-@mcp.tool()
 def elementos_expuestos_ln_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("elementosexpuestosln")
 
 
-@mcp.tool()
 def elementos_expuestos_pg_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("elementosexpuestospg")
 
 
-@mcp.tool()
 def elementos_expuestos_pt_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("elementosexpuestospt")
 
 
-@mcp.tool()
 def escen_riesgo_incendio_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("escenriesgoincendio")
 
 
-@mcp.tool()
 def escen_riesgo_mov_masa_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("escenriesgomovmasa")
 
 
-@mcp.tool()
 def eventos_pt_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("eventos_pt")
 
 
-@mcp.tool()
 def export_output_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("export_output")
 
 
-@mcp.tool()
 def suscept_aventorren_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("suscept_aventorren")
 
 
-@mcp.tool()
 def suscept_incendios_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("suscept_incendios")
 
 
-@mcp.tool()
 def suscept_inundaciones_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("suscept_inundaciones")
 
 
-@mcp.tool()
 def suscept_movmasa_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("suscept_movmasa")
 
 
-@mcp.tool()
 def vulnerabilidad_ln_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("vulnerabilidad_ln")
 
 
-@mcp.tool()
 def vulnerabilidad_pg_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("vulnerabilidad_pg")
 
 
-@mcp.tool()
 def vulnerabilidad_pt_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("vulnerabilidad_pt")
 
 
-@mcp.tool()
 def get_compensation_compendium(project_id: str) -> Dict[str, Any]:
     comp_bio = _supabase_fetch_all_rows("compensacionbiodiversidad")
     return {
@@ -465,14 +417,97 @@ def get_compensation_compendium(project_id: str) -> Dict[str, Any]:
     }
 
 
-@mcp.tool()
 def get_compensation_unique(project_id: str) -> Dict[str, Any]:
     comp_bio = _supabase_fetch_all_rows("compensacionbiodiversidad")
     uniq = _distinct_union_datasets(comp_bio)
     return {"summary": {"unique_count": uniq["unique_count"]}, "unique": uniq}
-@mcp.tool()
 def compensacion_biodiversidad_query(project_id: str) -> Dict[str, Any]:
     return _supabase_fetch_all_rows("compensacionbiodiversidad")
+
+
+@mcp.tool()
+def get_structured_resource_summary(project_id: str) -> Dict[str, Any]:
+    """Generate a structured summary with environmental resource intersections.
+    
+    Returns rows with schema: {recurso1, recurso, cantidad, tipo, categoria}
+    for geospatial analysis and environmental impact assessment.
+    """
+    try:
+        # Collect data from all available compendium tools
+        soils_data = get_soils_compendium(project_id)
+        hydrology_data = get_hydrology_compendium(project_id)
+        hydrogeology_data = get_hydrogeology_compendium(project_id)
+        biotic_data = get_biotic_compendium(project_id)
+        risk_data = get_risk_management_compendium(project_id)
+        compensation_data = get_compensation_compendium(project_id)
+        
+        structured_rows = []
+        
+        # Process each data source into structured format
+        compendiums = [
+            ("soils", soils_data),
+            ("hydrology", hydrology_data), 
+            ("hydrogeology", hydrogeology_data),
+            ("biotic", biotic_data),
+            ("risk_management", risk_data),
+            ("compensation", compensation_data),
+        ]
+        
+        for category, data in compendiums:
+            summary = data.get("summary", {})
+            for resource_type, count in summary.items():
+                if count and count > 0:
+                    # Map resource types to more descriptive names
+                    resource_mapping = {
+                        "CapacidadUsoTierra": "Suelos",
+                        "CuencaHidrografica": "Cuencas Hidrográficas",
+                        "ocupacioncauce": "Ocupación de Cauce",
+                        "puntomuestreoaguasuper": "Agua Superficial",
+                        "usosyusuariosrecursohidrico": "Uso Recursos Hídricos",
+                        "PuntoHidrogeologico": "Puntos Hidrogeológicos",
+                        "puntohidrogeologico": "Hidrogeología",
+                        "puntomuestreoaguasubter": "Agua Subterránea",
+                        "aprovechaforestalpg": "Aprovechamiento Forestal (Polígono)",
+                        "aprovechaforestalpt": "Aprovechamiento Forestal (Punto)",
+                        "coberturatierra": "Cobertura de Tierra",
+                        "ecosistema": "Ecosistemas",
+                        "puntomuestreofauna": "Fauna",
+                        "puntomuestreoflora": "Flora",
+                        "transectomuestreofauna": "Transectos Fauna",
+                        "compensacionbiodiversidad": "Compensación Biodiversidad",
+                    }
+                    
+                    tipo_mapping = {
+                        "soils": "Suelos",
+                        "hydrology": "Hidrología", 
+                        "hydrogeology": "Hidrogeología",
+                        "biotic": "Biótico",
+                        "risk_management": "Gestión de Riesgo",
+                        "compensation": "Compensación",
+                    }
+                    
+                    structured_rows.append({
+                        "recurso1": resource_mapping.get(resource_type, resource_type),
+                        "recurso": resource_mapping.get(resource_type, resource_type),
+                        "cantidad": count,
+                        "tipo": tipo_mapping.get(category, category),
+                        "categoria": category.upper(),
+                    })
+        
+        return {
+            "ok": True,
+            "count": len(structured_rows),
+            "rows": structured_rows,
+            "project_id": project_id,
+        }
+        
+    except Exception as exc:
+        return {
+            "ok": False,
+            "error": str(exc),
+            "count": 0,
+            "rows": [],
+        }
 
 
 @mcp.tool()

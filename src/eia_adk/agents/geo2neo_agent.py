@@ -3,7 +3,11 @@ import os
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams, StdioServerParameters
 from pathlib import Path
 from typing import Any, Dict
-from .tools import mock_geo2neo_map
+from .tools import (
+    mock_geo2neo_map,
+    geo2neo_from_structured_summary,
+    mock_geo2neo_from_structured_summary,
+)
 
 
 # Configure MCP stdio toolset for mcp-geo2neo
@@ -29,11 +33,12 @@ agent = Agent(
     name='geo2neo_agent',
     description='Agent that calls the geo2neo MCP based on impacted resources.',
     instruction=(
-        'Given the upstream geo analysis results, perform a simple MCP call to validate connectivity.\n'
-        "First, call the 'ping' tool from the geo2neo MCP and return its result., then call the mock_geo2neo_map tool to map the impacted resources to the legal framework."
+        'Toma la salida previa (state.geo.structured_summary). Extrae valores únicos de la columna tipo y,\n'
+        "para esos alias, llama la herramienta MCP 'map_by_aliases' en mcp-geo2neo. Guarda el resultado en state.legal.geo2neo.alias_mapping.\n"
+        'En modo MOCK, usa mock_geo2neo_from_structured_summary.'
     ),
     tools=[
         mcp_geo2neo_toolset,
-        mock_geo2neo_map,
+        mock_geo2neo_from_structured_summary if os.getenv('EIA_USE_MOCKS', '0') in ('1','true','True') else geo2neo_from_structured_summary,
     ],
 )

@@ -118,6 +118,34 @@ async def main() -> None:
                 except Exception:
                     print(str(paths))
 
+            if "map_by_aliases" in tool_names:
+                aliases = [
+                    "aprovechaforestalpg",
+                    "usosyusuariosrecursohidrico",
+                    "compensacionbiodiversidad",
+                ]
+                res = await call_tool_json(
+                    "map_by_aliases",
+                    {"input": {"aliases": aliases}},
+                )
+                print({
+                    "map_by_aliases": {
+                        "ok": res.get("ok"),
+                        "count": res.get("count"),
+                        "aliases": aliases,
+                    }
+                })
+                # Print first result compactly
+                results = (res.get("results") or [])
+                if results:
+                    head = results[0]
+                    compact = {
+                        "category": head.get("category"),
+                        "instruments_count": len(head.get("instrumentsAndPermits", [])),
+                        "norms_count": len(head.get("associatedNorms", [])),
+                    }
+                    print({"map_by_aliases_head": compact})
+
 
 if __name__ == "__main__":
     asyncio.run(main())

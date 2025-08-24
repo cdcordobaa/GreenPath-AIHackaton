@@ -7,6 +7,7 @@ from neo4j_io import (
     lookup_tokens,
     inspect_taxonomy as _inspect_taxonomy,
     fetch_instrumento_paths,
+    run_tx,
 )
 
 
@@ -87,7 +88,6 @@ def extract_tokens(geo: Dict[str, Any], layer_cols: Dict[str, List[str]]) -> Lis
 
 
 # ---- Tool ----
-@mcp.tool()
 def map_geo_to_legal(input: MapInput) -> MapOutput:
     tokens = extract_tokens(input.geo, input.layer_cols)
     hits = lookup_tokens(tokens)
@@ -118,7 +118,6 @@ class InspectInput(BaseModel):
     include_constraints: bool = True
 
 
-@mcp.tool()
 def inspect_taxonomy(input: InspectInput) -> Dict[str, Any]:
     return _inspect_taxonomy(
         count_limit=input.count_limit,
@@ -132,10 +131,75 @@ class InstrumentoInput(BaseModel):
     limit: int = 25
 
 
-@mcp.tool()
 def get_instrumento_paths(input: InstrumentoInput) -> Dict[str, Any]:
     items = fetch_instrumento_paths(limit=input.limit)
     return {"count": len(items), "paths": items}
+
+
+# ---------- New: Map by aliases (Categoria-driven) ----------
+class MapByAliasesInput(BaseModel):
+    aliases: List[str] = Field(default_factory=list)
+
+
+MAP_BY_ALIASES_CYPHER = """
+UNWIND $aliases AS alias
+WITH DISTINCT alias
+MATCH (c:Category)
+WHERE alias IN c.aliases
+WITH DISTINCT c
+MATCH (c)<-[:BELONGS_TO_CATEGORY]-(i:Instrument)
+MATCH (i)<-[:IS_MODALITY_OF]-(sub:Subcategory)-[:APPLIES_TO]->(r:Resource)
+OPTIONAL MATCH (sub)<-[:IS_CRITERION_FOR]-(mc:ManagementCriterion)
+WITH c, i, sub, r, collect(DISTINCT mc.description) AS managementCriteria
+OPTIONAL MATCH (sub)<-[:IS_CRITERION_FOR]-(cc:CompensationCriterion)
+WITH c, i, sub, r, managementCriteria, collect(DISTINCT cc.description) AS compensationCriteria
+WITH c, i, {
+  subcategoryName: sub.name,
+  affectedResource: r.name,
+  managementCriteria: managementCriteria,
+  compensationCriteria: compensationCriteria
+} AS subcategoryDetails
+ORDER BY subcategoryDetails.subcategoryName
+WITH c, i, collect(subcategoryDetails) AS instrumentModalities
+WITH c, {
+  instrumentName: i.name,
+  modalities: instrumentModalities
+} AS instrumentDetails
+ORDER BY instrumentDetails.instrumentName
+WITH c, collect(instrumentDetails) AS detailedInstruments
+OPTIONAL MATCH (c)-[:INCLUDES_NORM]->(norm:NormativeInstrument)
+OPTIONAL MATCH (norm)-[reg:REGULATED_BY]->(childNorm:NormativeInstrument)
+WITH c, detailedInstruments, norm, {
+  childNormName: childNorm.name,
+  relationType: reg.type
+} AS childNormDetails
+ORDER BY childNormDetails.childNormName
+WITH c, detailedInstruments, norm, collect(childNormDetails) AS childNorms
+WITH c, detailedInstruments, norm,
+     CASE WHEN size(childNorms) > 0 AND childNorms[0].childNormName IS NOT NULL THEN childNorms ELSE [] END AS cleanedChildNorms
+ORDER BY norm.name
+WITH c, detailedInstruments, {
+  normName: norm.name,
+  type: norm.type,
+  issuer: norm.issuer,
+  year: norm.year,
+  component: norm.component,
+  obligations: norm.obligations,
+  requiredData: norm.required_data,
+  childNorms: cleanedChildNorms
+} AS normDetails
+WITH c, detailedInstruments, collect(DISTINCT normDetails) AS associatedNorms
+RETURN c.name AS category, detailedInstruments AS instrumentsAndPermits, associatedNorms AS associatedNorms
+"""
+
+
+@mcp.tool()
+def map_by_aliases(input: MapByAliasesInput) -> Dict[str, Any]:
+    aliases = [a for a in (input.aliases or []) if isinstance(a, str) and a.strip()]
+    if not aliases:
+        return {"ok": False, "error": "empty aliases"}
+    records, meta = run_tx(MAP_BY_ALIASES_CYPHER, {"aliases": aliases})
+    return {"ok": True, "count": len(records), "results": records, "meta": meta}
 
 
 @mcp.tool()

@@ -33,7 +33,7 @@ agent = Agent(
     description='Análisis geoespacial e intersecciones',
     instruction=(
         'Recibe el estado del intake con project y config.layers.\n'
-        '1) Llama get_structured_resource_summary (vía MCP) para obtener filas agregadas con campos {recurso1,recurso,cantidad,tipo,categoria}.\n'
+        '1) Llama structured_summary_via_mcp (vía MCP) para obtener filas agregadas con campos {recurso1,recurso,cantidad,tipo,categoria}.\n'
         '2) Guarda el resultado en state.geo.structured_summary.\n'
         'Soporta modo MOCK via EIA_USE_MOCKS=1.\n'
     ),

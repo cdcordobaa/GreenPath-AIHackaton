@@ -435,6 +435,104 @@ def geo_fetch_layers(state_json: Dict[str, Any]) -> Dict[str, Any]:
     return current
 
 
+def geo_kb_search_from_state(state_json: Dict[str, Any], per_keyword_limit: int = 5, max_keywords: int = 12) -> Dict[str, Any]:
+    """Derive search keywords from state and query geo-fetch-mcp.scraped_pages for matching docs.
+
+    Sources of keywords (in order):
+    - legal.geo2neo.alias_input (the aliases used to map categories)
+    - legal.geo2neo.alias_mapping.results[*].category
+    - instrument names and affected resources in alias_mapping results
+    - geo.structured_summary.rows[*].categoria and tipo
+    """
+    current = deepcopy(state_json or {})
+    keywords: List[str] = []
+
+    # 1) Aliases used
+    try:
+        aliases = list(((current.get("legal") or {}).get("geo2neo") or {}).get("alias_input") or [])
+        keywords.extend([str(a) for a in aliases if a is not None])
+    except Exception:
+        pass
+
+    # 2) From mapping results
+    try:
+        results = ((current.get("legal") or {}).get("geo2neo") or {}).get("alias_mapping", {}).get("results") or []
+        for item in results:
+            cat = item.get("category")
+            if cat:
+                keywords.append(str(cat))
+            for inst in item.get("instrumentsAndPermits", []) or []:
+                name = inst.get("instrumentName")
+                if name:
+                    keywords.append(str(name))
+                for mod in inst.get("modalities", []) or []:
+                    ar = mod.get("affectedResource")
+                    if ar:
+                        keywords.append(str(ar))
+    except Exception:
+        pass
+
+    # 3) From structured summary rows
+    try:
+        rows = (((current.get("geo") or {}).get("structured_summary") or {}).get("rows") or [])
+        for r in rows:
+            if r.get("categoria"):
+                keywords.append(str(r.get("categoria")))
+            if r.get("tipo"):
+                keywords.append(str(r.get("tipo")))
+    except Exception:
+        pass
+
+    # Deduplicate and cap
+    uniq: List[str] = []
+    seen: set[str] = set()
+    for k in keywords:
+        k2 = k.strip()
+        if not k2:
+            continue
+        if k2.lower() in seen:
+            continue
+        seen.add(k2.lower())
+        uniq.append(k2)
+        if len(uniq) >= max_keywords:
+            break
+
+    # Query MCP search for each keyword
+    aggregated: Dict[str, Dict[str, Any]] = {}
+    for kw in uniq:
+        args: Dict[str, Any] = {"text_contains": kw, "limit": per_keyword_limit}
+        try:
+            result = _run_coro_blocking(_async_call_mcp_server("geo-fetch-mcp", "search_scraped_pages", args))
+        except Exception as exc:
+            result = {"ok": False, "error": str(exc)}
+        rows = result.get("rows") or []
+        for row in rows:
+            url = str(row.get("url") or "")
+            key = url or row.get("id") or str(len(aggregated))
+            if key not in aggregated:
+                aggregated[key] = row
+
+    # Save into state
+    kb = ((current.setdefault("legal", {})).setdefault("kb", {}))
+    kb["keywords"] = uniq
+    docs = list(aggregated.values())
+    kb["scraped_pages"] = {"count": len(docs), "rows": docs}
+    return current
+
+
+def mock_geo_kb_search_from_state(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    current = deepcopy(state_json or {})
+    kb = ((current.setdefault("legal", {})).setdefault("kb", {}))
+    kb["keywords"] = ["aprovechamiento forestal", "recurso hídrico"]
+    kb["scraped_pages"] = {
+        "count": 2,
+        "rows": [
+            {"url": "https://example.org/mads/permiso-forestal", "title": "Permiso de Aprovechamiento Forestal", "content_md": "Requisitos y normativa..."},
+            {"url": "https://example.org/anh/uso-agua", "title": "Usos y Usuarios del Recurso Hídrico", "content_md": "Procedimientos y autoridades..."},
+        ],
+    }
+    return current
+
 # =====================
 # Geo: Fetch all *compendium tools
 # =====================
@@ -540,92 +638,9 @@ def geo_fetch_all_compendia(state_json: Dict[str, Any]) -> Dict[str, Any]:
 
 
 # =====================
-# LLM: Derive normalized impacts/entities from compendia summaries
+# Note: derive_impacts_from_compendia was removed as it's no longer needed
+# The structured_summary_via_mcp provides the necessary impact analysis
 # =====================
-def derive_impacts_from_compendia(state_json: Dict[str, Any], model: Optional[str] = None) -> Dict[str, Any]:
-    current = deepcopy(state_json or {})
-    geo = current.get("geo") or {}
-    comp = geo.get("compendia") or {}
-    # Build a compact prompt using only summaries to keep tokens reasonable
-    summaries: Dict[str, Dict[str, Any]] = {}
-    for name, payload in comp.items():
-        if isinstance(payload, dict) and isinstance(payload.get("summary"), dict):
-            summaries[name] = payload["summary"]
-
-    # If we have no summaries, skip LLM and report meaningful error
-    if not summaries:
-        current.setdefault("temp:impacts:last_error", "no compendia summaries available; run geo_fetch_all_compendia first or check MCP credentials")
-        return current
-    _log_compact("impacts.input.summaries", summaries, max_len=2000)
-
-    cfg = LlmConfig()
-    if model:
-        cfg.primary = model
-    runner = LlmRunner(cfg)
-
-    instruction = (
-        "You are a legal-environmental assistant. Given compendium summaries from geospatial datasets, "
-        "produce a normalized list of impact categories and entities suitable for legal trigger analysis.\n"
-        "Return STRICT JSON with this schema: {\n"
-        "  \"impacts\": {\n"
-        "    \"categories\": [string...],\n"
-        "    \"entities\": [{\n"
-        "      \"category\": string,\n"
-        "      \"entity\": string,\n"
-        "      \"source_compendium\": string,\n"
-        "      \"evidence\": string\n"
-        "    }...]\n"
-        "  }\n"
-        "}\n"
-        "- categories should be Spanish domain buckets like suelo, hidrografía, biota, ecosistemas, riesgo, compensaciones.\n"
-        "- entities should be specific triggers derived from counts, e.g., 'ocupación de cauce', 'ecosistema sensible', 'muestra de agua superficial'.\n"
-        "- Fill evidence concisely from which summary keys suggest the entity."
-    )
-    prompt = (
-        instruction
-        + "\n\nCOMPACTION_SUMMARIES_JSON=\n"
-        + json.dumps(summaries, ensure_ascii=False)
-    )
-
-    def _best_effort_parse_json(text: str) -> Optional[dict]:
-        # Try direct
-        try:
-            return json.loads(text)
-        except Exception:
-            pass
-        # Try to extract first {...} block
-        try:
-            start = text.find('{')
-            end = text.rfind('}')
-            if start != -1 and end != -1 and end > start:
-                return json.loads(text[start:end + 1])
-        except Exception:
-            pass
-        return None
-
-    try:
-        raw = runner.ask(prompt)
-        current.setdefault("temp:impacts:last_raw", raw)
-        _log_compact("impacts.llm.raw", raw, max_len=1000)
-        parsed = _best_effort_parse_json(raw) or {}
-        impacts = parsed.get("impacts", {}) if isinstance(parsed, dict) else {}
-        if impacts:
-            target = current.setdefault("impacts", {"categories": [], "entities": []})
-            cats = impacts.get("categories") or []
-            ents = impacts.get("entities") or []
-            if isinstance(cats, list):
-                target["categories"] = cats
-            if isinstance(ents, list):
-                target["entities"] = ents
-            _log_compact("impacts.output.categories", cats)
-            _log_compact("impacts.output.entities.head", ents[:3] if isinstance(ents, list) else ents)
-        else:
-            current.setdefault("temp:impacts:last_error", "LLM did not return valid JSON 'impacts' object")
-    except Exception as exc:
-        current.setdefault("temp:impacts:last_error", f"LLM error: {exc}")
-        logger.exception("impacts.llm.exception")
-
-    return current
 
 
 # =====================
@@ -668,17 +683,7 @@ def mock_geo_fetch_all_compendia(state_json: Dict[str, Any]) -> Dict[str, Any]:
     return current
 
 
-def mock_derive_impacts_from_compendia(state_json: Dict[str, Any]) -> Dict[str, Any]:
-    current = deepcopy(state_json or {})
-    impacts = current.setdefault("impacts", {"categories": [], "entities": []})
-    impacts["categories"] = ["suelo", "hidrografía", "biota", "riesgo", "compensaciones"]
-    impacts["entities"] = [
-        {"category": "suelo", "entity": "Capacidad de uso de la tierra conflictiva", "source_compendium": "get_soils_compendium", "evidence": "CapacidadUsoTierra: 2"},
-        {"category": "hidrografía", "entity": "Presencia de cuenca hidográfica", "source_compendium": "get_hydrology_compendium", "evidence": "CuencaHidrografica: 1"},
-        {"category": "biota", "entity": "Ecosistema sensible identificado", "source_compendium": "get_biotic_compendium", "evidence": "ecosistema: 1"},
-        {"category": "riesgo", "entity": "Susceptibilidad a inundaciones", "source_compendium": "get_risk_management_compendium", "evidence": "suscept_inundaciones: 1"},
-    ]
-    return current
+# Note: mock_derive_impacts_from_compendia was removed as it's no longer needed
 
 
 def mock_geo2neo_map(state_json: Dict[str, Any]) -> Dict[str, Any]:
@@ -841,13 +846,6 @@ def search_scraped_pages_via_mcp(state_json: Dict[str, Any], url_contains: Optio
     return current
 
 
-def structured_summary_via_mcp(state_json: Dict[str, Any]) -> Dict[str, Any]:
-    """Convenience tool: fetch compendium summaries via MCP and write into state.
-
-    Delegates to geo_fetch_all_compendia to populate state.geo.compendia and summary rollups.
-    """
-    return geo_fetch_all_compendia(state_json)
-
 
 def structured_summary_via_mcp(state_json: Dict[str, Any]) -> Dict[str, Any]:
     """Call geo-fetch-mcp.get_structured_resource_summary and write into state.geo.summary_rows.
@@ -861,11 +859,10 @@ def structured_summary_via_mcp(state_json: Dict[str, Any]) -> Dict[str, Any]:
     if project_ref.get("project_id"):
         args["project_id"] = project_ref.get("project_id")
     elif project_ref.get("project_name"):
-        # Pass empty project_id but include name for future flexibility
-        args["project_id"] = ""
-        args["project_name"] = project_ref.get("project_name")
+        args["project_id"] = project_ref.get("project_name")
     else:
-        args["project_id"] = ""
+        # fall back to env var PROJECT_ID or demo-project
+        args["project_id"] = os.getenv("PROJECT_ID", "demo-project")
 
     try:
         out = _run_coro_blocking(_async_call_mcp_server("geo-fetch-mcp", "get_structured_resource_summary", args))
@@ -873,10 +870,12 @@ def structured_summary_via_mcp(state_json: Dict[str, Any]) -> Dict[str, Any]:
         out = {"ok": False, "error": str(exc)}
 
     geo = current.setdefault("geo", {})
-    if out.get("ok"):
-        geo["structured_summary"] = {"count": out.get("count"), "rows": out.get("rows")}
+    if out.get("ok") and isinstance(out.get("rows"), list):
+        geo["structured_summary"] = {"count": out.get("count", len(out.get("rows", []))), "rows": out.get("rows")}
     else:
-        geo["structured_summary"] = {"error": out.get("error")}
+        # propagate error or raw message for visibility
+        err = out.get("error") or out.get("raw") or "structured summary failed"
+        geo["structured_summary"] = {"error": err}
     return current
 
 
@@ -889,4 +888,45 @@ def mock_structured_summary(state_json: Dict[str, Any]) -> Dict[str, Any]:
         {"recurso1": "Río Demo", "recurso": None, "cantidad": 2, "tipo": "puntomuestreoaguasuper", "categoria": "Río Demo"},
     ]
     geo["structured_summary"] = {"count": len(rows), "rows": rows, "mock": True}
+    return current
+
+
+def geo2neo_from_structured_summary(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    """Extract unique 'tipo' from state.geo.structured_summary and call geo2neo map_by_aliases.
+
+    Writes results into state.legal.geo2neo.alias_mapping.
+    """
+    current = deepcopy(state_json or {})
+    rows = (((current.get("geo") or {}).get("structured_summary") or {}).get("rows") or [])
+    aliases: List[str] = sorted({str(r.get("tipo")) for r in rows if r.get("tipo") is not None})
+    try:
+        out = _run_coro_blocking(_async_call_mcp_server("mcp-geo2neo", "map_by_aliases", {"input": {"aliases": aliases}}))
+    except Exception as exc:
+        out = {"ok": False, "error": str(exc)}
+
+    legal = current.setdefault("legal", {})
+    g2n = legal.setdefault("geo2neo", {})
+    g2n["alias_input"] = aliases
+    g2n["alias_mapping"] = out
+    return current
+
+
+def mock_geo2neo_from_structured_summary(state_json: Dict[str, Any]) -> Dict[str, Any]:
+    current = deepcopy(state_json or {})
+    rows = (((current.get("geo") or {}).get("structured_summary") or {}).get("rows") or [])
+    aliases: List[str] = sorted({str(r.get("tipo")) for r in rows if r.get("tipo") is not None})
+    legal = current.setdefault("legal", {})
+    g2n = legal.setdefault("geo2neo", {})
+    g2n["alias_input"] = aliases
+    g2n["alias_mapping"] = {
+        "ok": True,
+        "count": 1,
+        "results": [
+            {
+                "category": "Demo Category",
+                "instrumentsAndPermits": [{"instrumentName": "Permiso Demo", "modalities": []}],
+                "associatedNorms": [],
+            }
+        ],
+    }
     return current

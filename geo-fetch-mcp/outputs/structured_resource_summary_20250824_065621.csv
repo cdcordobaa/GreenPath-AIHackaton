@@ -1,0 +1,22 @@
+recurso1,recurso,cantidad,tipo,categoria
+Suelos,Suelos,505,Suelos,SOILS
+Cuencas Hidrográficas,Cuencas Hidrográficas,19,Hidrología,HYDROLOGY
+Ocupación de Cauce,Ocupación de Cauce,2,Hidrología,HYDROLOGY
+Agua Superficial,Agua Superficial,32,Hidrología,HYDROLOGY
+Uso Recursos Hídricos,Uso Recursos Hídricos,174,Hidrología,HYDROLOGY
+Hidrogeología,Hidrogeología,208,Hidrogeología,HYDROGEOLOGY
+Agua Subterránea,Agua Subterránea,21,Hidrogeología,HYDROGEOLOGY
+Aprovechamiento Forestal (Polígono),Aprovechamiento Forestal (Polígono),1000,Biótico,BIOTIC
+Aprovechamiento Forestal (Punto),Aprovechamiento Forestal (Punto),1000,Biótico,BIOTIC
+Cobertura de Tierra,Cobertura de Tierra,1000,Biótico,BIOTIC
+Ecosistemas,Ecosistemas,1000,Biótico,BIOTIC
+Fauna,Fauna,253,Biótico,BIOTIC
+Flora,Flora,501,Biótico,BIOTIC
+Transectos Fauna,Transectos Fauna,187,Biótico,BIOTIC
+amenazaotras,amenazaotras,1000,Gestión de Riesgo,RISK_MANAGEMENT
+elementosexpuestosln,elementosexpuestosln,1000,Gestión de Riesgo,RISK_MANAGEMENT
+elementosexpuestospt,elementosexpuestospt,1000,Gestión de Riesgo,RISK_MANAGEMENT
+suscept_incendios,suscept_incendios,1000,Gestión de Riesgo,RISK_MANAGEMENT
+suscept_inundaciones,suscept_inundaciones,280,Gestión de Riesgo,RISK_MANAGEMENT
+vulnerabilidad_pt,vulnerabilidad_pt,1000,Gestión de Riesgo,RISK_MANAGEMENT
+Compensación Biodiversidad,Compensación Biodiversidad,37,Compensación,COMPENSATION

@@ -2,7 +2,11 @@ from google.adk.agents.llm_agent import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import MCPToolset, StdioConnectionParams, StdioServerParameters
 from pathlib import Path
 import os
-from .tools import search_scraped_pages_via_mcp
+from .tools import (
+    search_scraped_pages_via_mcp,
+    geo_kb_search_from_state,
+    mock_geo_kb_search_from_state,
+)
 
 
 # Configure MCP stdio toolset for mcp-geo2neo
@@ -27,12 +31,13 @@ agent = Agent(
     name='geo_kb_agent',
     description='Interprets geo2neo results and queries the knowledge base via MCP.',
     instruction=(
-        'Use prior state (e.g., legal.geo2neo.summary.category) to decide what to search.\n'
-        "First ensure connectivity by pinging MCP; then call the search tool to fetch matching scraped_pages rows."
+        'Deriva palabras clave desde state.legal.geo2neo y state.geo.structured_summary.\n'
+        'Luego llama geo_kb_search_from_state para almacenar coincidencias en legal.kb.scraped_pages.\n'
+        'En modo MOCK usa mock_geo_kb_search_from_state.'
     ),
     tools=[
         mcp_geo2neo_toolset,
-        search_scraped_pages_via_mcp,
+        mock_geo_kb_search_from_state if os.getenv('EIA_USE_MOCKS', '0') in ('1','true','True') else geo_kb_search_from_state,
     ],
 )
 
